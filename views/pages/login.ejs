@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Connexion</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Connexion</h1>
+    <p>Entrez votre numéro de téléphone pour vous connecter.</p>
+
+    <% if (error) { %>
+      <div class="error"><%= error %></div>
+    <% } %>
+
+    <form method="POST" action="/login">
+      <input type="text" name="phone" placeholder="Téléphone" required minlength="8" />
+      <button type="submit">Se connecter</button>
+    </form>
+
+    <a href="/register" class="link">Créer un compte</a>
+  </div>
+</body>
+</html>
+<script src="/js/script.js"></script>

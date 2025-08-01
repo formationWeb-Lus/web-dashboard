@@ -30,7 +30,7 @@ router.post('/login', async (req, res) => {
 
     // 2. Appel à l’API distante pour obtenir le token JWT du véhicule
     const apiResponse = await axios.post(
-      'https://gps-device-server.onrender.com/api/vehicule-token',
+      'https://gps-device-server.onrender.com/api/vehicules-token',
       { vehiculeId }
     );
 

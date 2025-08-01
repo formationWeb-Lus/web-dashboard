@@ -2,18 +2,51 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Tableau de bord</title>
-  <link rel="stylesheet" href="/css/style.css">
+  <title>Dashboard - <%= user.name %></title>
+  <link rel="stylesheet" href="/css/dashboard.css">
 </head>
 <body>
-  <div class="container">
-    <h1>Bienvenue</h1>
-    <p>Utilisateur connecté avec succès 🎉</p>
+  <h1>Bienvenue <%= user.name %> — Véhicule : <%= user.vehiculeid %></h1>
 
-    <p><strong>Token JWT :</strong></p>
-    <pre><%= token %></pre>
+  <% if (error) { %>
+    <p style="color: red;"><%= error %></p>
+  <% } %>
 
-    <a href="/logout" class="link">Se déconnecter</a>
-  </div>
+  <table border="1" cellpadding="5" cellspacing="0">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Véhicule</th>
+        <th>Latitude</th>
+        <th>Longitude</th>
+        <th>Vitesse</th>
+        <th>Heure</th>
+        <th>Adresse complète</th>
+        <th>Quartier</th>
+        <th>Ville</th>
+        <th>Territoire</th>
+        <th>Province</th>
+        <th>Pays</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% positions.forEach((p, index) => { %>
+        <tr>
+          <td><%= index + 1 %></td>
+          <td><%= p.vehiculeid %></td>
+          <td><%= p.latitude %></td>
+          <td><%= p.longitude %></td>
+          <td><%= p.vitesse || p.speed %> km/h</td>
+          <td><%= p.createdAt ? new Date(p.createdAt).toLocaleString('fr-FR') : 'Date inconnue' %></td>
+          <td><%= p.adresse || "Adresse indisponible" %></td>
+          <td><%= p.quartier || '-' %></td>
+          <td><%= p.ville || '-' %></td>
+          <td><%= p.territoire || '-' %></td>
+          <td><%= p.province || '-' %></td>
+          <td><%= p.pays || '-' %></td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
 </body>
 </html>

@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Carte GPS</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background-color: #f7f7f7;
+    }
+
+    h2 {
+      margin-bottom: 10px;
+    }
+
+    #map {
+      height: 85vh;
+      width: 100%;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+
+    .back-link {
+      display: inline-block;
+      margin-bottom: 15px;
+      color: #007bff;
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    .back-link:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+
+  <a href="/dashboard" class="back-link">← Retour au tableau de bord</a>
+  <h2>🛰️ Suivi GPS du véhicule</h2>
+  <div id="map"></div>
+
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script>
+    const positions = <%- JSON.stringify(positions || []) %>;
+
+    if (positions.length === 0) {
+      alert("Aucune position disponible pour l'instant.");
+    } else {
+      const map = L.map('map').setView(
+        [positions[positions.length - 1].latitude, positions[positions.length - 1].longitude],
+        13
+      );
+
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+      }).addTo(map);
+
+      const latlngs = [];
+
+      positions.forEach(pos => {
+        const marker = L.marker([pos.latitude, pos.longitude]).addTo(map);
+        marker.bindPopup(`
+          <strong>Véhicule :</strong> ${pos.vehiculeid || 'N/A'}<br>
+          🛣 Rue : ${pos.rue || 'N/A'}<br>
+          ⚡ Vitesse : ${pos.vitesse} km/h
+        `);
+        latlngs.push([pos.latitude, pos.longitude]);
+      });
+
+      L.polyline(latlngs, { color: 'red' }).addTo(map);
+    }
+  </script>
+
+</body>
+</html>

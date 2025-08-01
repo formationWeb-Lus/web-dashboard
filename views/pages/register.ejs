@@ -12,24 +12,27 @@
 
     <% if (error) { %>
       <div class="error"><%= error %></div>
-<% } %>
+    <% } %>
 
-<form method="POST" action="/register">
-  <input type="text" name="firstname" placeholder="Prénom" required />
-  <input type="text" name="lastname" placeholder="Nom" required />
-  <input type="tel" name="phone" placeholder="Téléphone" required minlength="8" />
+    <form method="POST" action="/register">
+      <input type="text" name="firstname" placeholder="Prénom" required />
+      <input type="text" name="lastname" placeholder="Nom" required />
+      <input type="tel" name="phone" placeholder="Téléphone" required minlength="8" />
 
-  <label>Choisissez un plan :</label>
-  <select name="plan" required>
-    <option value="">-- Sélectionnez --</option>
-    <option value="mensuel">Mensuel - 10$/véhicule</option>
-    <option value="annuel">Annuel - 100$/véhicule</option>
-  </select>
+      <label>Choisissez un plan :</label>
+      <select name="plan" required>
+        <option value="">-- Sélectionnez --</option>
+        <option value="mensuel">Mensuel - 10$/véhicule</option>
+        <option value="annuel">Annuel - 100$/véhicule</option>
+      </select>
 
-  <label>Nombre de véhicules :</label>
-  <input type="number" name="vehicleCount" min="1" max="300" value="1" required />
+      <label>Nombre de véhicules :</label>
+      <input type="number" name="vehicle_Count" min="1" max="300" value="1" required />
 
-  <button type="submit">S’inscrire</button>
-</form>
+      <button type="submit">S’inscrire</button>
+    </form>
 
-<a href="/login" class="link">J’ai déjà un compte</a>
+    <p>Vous avez déjà un compte ? <a href="/login" class="link">Connectez-vous ici</a></p>
+  </div>
+</body>
+</html>

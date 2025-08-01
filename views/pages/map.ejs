@@ -1,78 +1,111 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-  <meta charset="UTF-8">
-  <title>Carte GPS</title>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      padding: 20px;
-      background-color: #f7f7f7;
-    }
+<%- include('../partials/header') %>
 
-    h2 {
-      margin-bottom: 10px;
-    }
+<nav>
+  <ul class="nav">
+    <li><a href="/dashboard">📍 Position</a></li>
+    <li><a href="/history">📜 Historique</a></li>
+    <li><a href="/stop">⛔ Arrêt</a></li>
+    <li><a href="/map" class="active">🗺️ Carte</a></li>
+    <li><a href="/settings">⚙️ Paramètres</a></li>
+  </ul>
+</nav>
 
-    #map {
-      height: 85vh;
-      width: 100%;
-      border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    }
+<h2>🗺️ Carte du véhicule et de l'utilisateur</h2>
 
-    .back-link {
-      display: inline-block;
-      margin-bottom: 15px;
-      color: #007bff;
-      text-decoration: none;
-      font-weight: bold;
-    }
+<div id="map" style="height: 500px; width: 100%; margin-bottom: 20px;"></div>
+<p id="distanceInfo">📏 En attente de la localisation...</p>
+<button onclick="locateMe()">📍 Me localiser</button>
 
-    .back-link:hover {
-      text-decoration: underline;
-    }
-  </style>
-</head>
-<body>
+<!-- Leaflet -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
 
-  <a href="/dashboard" class="back-link">← Retour au tableau de bord</a>
-  <h2>🛰️ Suivi GPS du véhicule</h2>
-  <div id="map"></div>
+<script>
+  const positions = <%- JSON.stringify(positions) %>;
+  if (!positions.length) {
+    document.getElementById("map").innerHTML = "<p>Aucune position disponible.</p>";
+  } else {
+    const vehPos = positions[positions.length - 1]; // dernière position du véhicule
+    const map = L.map('map').setView([vehPos.latitude, vehPos.longitude], 13);
 
-  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-  <script>
-    const positions = <%- JSON.stringify(positions || []) %>;
+    // OpenStreetMap tiles
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
 
-    if (positions.length === 0) {
-      alert("Aucune position disponible pour l'instant.");
-    } else {
-      const map = L.map('map').setView(
-        [positions[positions.length - 1].latitude, positions[positions.length - 1].longitude],
-        13
-      );
+    // Marqueur véhicule
+    const vehMarker = L.marker([vehPos.latitude, vehPos.longitude])
+      .addTo(map)
+      .bindPopup("🚗 Véhicule");
 
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; OpenStreetMap contributors'
-      }).addTo(map);
+    // Ligne vers l'utilisateur
+    let userMarker, userPolyline;
 
-      const latlngs = [];
+    // Fonction de localisation
+    function locateMe() {
+      navigator.geolocation.getCurrentPosition(function(position) {
+        const userLat = position.coords.latitude;
+        const userLng = position.coords.longitude;
 
-      positions.forEach(pos => {
-        const marker = L.marker([pos.latitude, pos.longitude]).addTo(map);
-        marker.bindPopup(`
-          <strong>Véhicule :</strong> ${pos.vehiculeid || 'N/A'}<br>
-          🛣 Rue : ${pos.rue || 'N/A'}<br>
-          ⚡ Vitesse : ${pos.vitesse} km/h
-        `);
-        latlngs.push([pos.latitude, pos.longitude]);
+        if (userMarker) map.removeLayer(userMarker);
+        if (userPolyline) map.removeLayer(userPolyline);
+
+        userMarker = L.marker([userLat, userLng], {
+          icon: L.icon({
+            iconUrl: 'https://maps.google.com/mapfiles/ms/icons/blue-dot.png',
+            iconSize: [32, 32],
+            iconAnchor: [16, 32],
+          })
+        }).addTo(map).bindPopup("👤 Vous êtes ici").openPopup();
+
+        userPolyline = L.polyline([
+          [vehPos.latitude, vehPos.longitude],
+          [userLat, userLng]
+        ], { color: 'red', weight: 3 }).addTo(map);
+
+        // Adapter la vue
+        const bounds = L.latLngBounds([
+          [vehPos.latitude, vehPos.longitude],
+          [userLat, userLng]
+        ]);
+        map.fitBounds(bounds);
+
+        // Calculer la distance
+        const distance = getDistanceInMeters(vehPos.latitude, vehPos.longitude, userLat, userLng);
+        document.getElementById('distanceInfo').innerText =
+          `📏 Distance entre vous et le véhicule : ${distance.toFixed(2)} mètres`;
+
+      }, function(error) {
+        document.getElementById('distanceInfo').innerText = "Erreur de géolocalisation.";
+        console.error(error);
+      }, {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0
       });
-
-      L.polyline(latlngs, { color: 'red' }).addTo(map);
     }
-  </script>
 
-</body>
-</html>
+    // Appeler automatiquement au chargement
+    locateMe();
+
+    // Fonction de distance Haversine
+    function getDistanceInMeters(lat1, lon1, lat2, lon2) {
+      const R = 6371e3;
+      const φ1 = lat1 * Math.PI / 180;
+      const φ2 = lat2 * Math.PI / 180;
+      const Δφ = (lat2 - lat1) * Math.PI / 180;
+      const Δλ = (lon2 - lon1) * Math.PI / 180;
+
+      const a = Math.sin(Δφ / 2) ** 2 +
+                Math.cos(φ1) * Math.cos(φ2) *
+                Math.sin(Δλ / 2) ** 2;
+
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+      return R * c;
+    }
+  }
+</script>
+
+<%- include('../partials/footer') %>

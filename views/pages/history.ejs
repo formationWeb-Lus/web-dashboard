@@ -1,0 +1,40 @@
+<%- include('../partials/header') %>
+
+<nav>
+  <ul class="nav">
+    <li><a href="/dashboard">📍 Position</a></li>
+    <li><a href="/history" class="active">📜 Historique</a></li>
+    <li><a href="/stop">⛔ Arrêt</a></li>
+    <li><a href="/map">🗺️ Carte</a></li>
+    <li><a href="/settings">⚙️ Paramètres</a></li>
+  </ul>
+</nav>
+
+<h2>📜 Historique des positions</h2>
+
+<% if (positions.length > 0) { %>
+  <table>
+    <thead>
+      <tr>
+        <th>Date</th>
+        <th>Latitude</th>
+        <th>Longitude</th>
+        <th>Vitesse</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% positions.forEach(pos => { %>
+        <tr>
+          <td><%= new Date(pos.timestamp).toLocaleString() %></td>
+          <td><%= pos.latitude %></td>
+          <td><%= pos.longitude %></td>
+          <td><%= pos.speed || 0 %> km/h</td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+<% } else { %>
+  <p>Aucune position enregistrée.</p>
+<% } %>
+
+<%- include('../partials/footer') %>

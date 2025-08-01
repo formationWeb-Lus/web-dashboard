@@ -9,26 +9,22 @@ function requireLogin(req, res, next) {
   next();
 }
 
+// PAGE : POSITION ACTUELLE (dashboard)
 router.get('/dashboard', requireLogin, async (req, res) => {
   try {
     const token = req.session.token;
     const vehiculeid = req.session.user.vehiculeid;
 
-    // 🔁 Requête API pour récupérer les positions
     const response = await axios.get('https://gps-device-server.onrender.com/api/positions', {
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
+      headers: { Authorization: `Bearer ${token}` }
     });
 
     let positions = Array.isArray(response.data) ? response.data : [];
 
-    // 🔎 Filtrer par véhicule et garder les 5 dernières
     positions = positions
       .filter(p => p.vehiculeid === vehiculeid)
       .slice(-5);
 
-    // 🗺️ Géocodage inverse avec OpenCage
     const enrichedPositions = await Promise.all(
       positions.map(async (p) => {
         try {
@@ -43,7 +39,6 @@ router.get('/dashboard', requireLogin, async (req, res) => {
 
           const result = geoRes.data.results[0];
           const comps = result?.components || {};
-
           const adresse = result?.formatted || "Adresse inconnue";
 
           return {
@@ -77,6 +72,77 @@ router.get('/dashboard', requireLogin, async (req, res) => {
       error: "Erreur de chargement des données"
     });
   }
+});
+
+
+// PAGE : HISTORIQUE
+router.get('/history', requireLogin, async (req, res) => {
+  try {
+    const token = req.session.token;
+    const vehiculeid = req.session.user.vehiculeid;
+
+    const response = await axios.get('https://gps-device-server.onrender.com/api/positions', {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+
+    const positions = response.data.filter(p => p.vehiculeid === vehiculeid);
+
+    res.render('pages/history', {
+      user: req.session.user,
+      positions
+    });
+
+  } catch (err) {
+    console.error("Erreur historique :", err.message);
+    res.render('pages/history', {
+      user: req.session.user,
+      positions: [],
+      error: "Impossible de charger l'historique"
+    });
+  }
+});
+
+// PAGE : ARRÊTS (à implémenter selon ta logique de détection d’arrêt)
+router.get('/stop', requireLogin, async (req, res) => {
+  // Logique d’arrêt possible : si 2 ou 3 points ont la même position (arrêt)
+  res.render('pages/stop', {
+    user: req.session.user,
+    stops: [] // à remplir plus tard
+  });
+});
+
+// PAGE : CARTE AVEC TRACE GPS
+router.get('/map', requireLogin, async (req, res) => {
+  try {
+    const token = req.session.token;
+    const vehiculeid = req.session.user.vehiculeid;
+
+    const response = await axios.get('https://gps-device-server.onrender.com/api/positions', {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+
+    const positions = response.data.filter(p => p.vehiculeid === vehiculeid);
+
+    res.render('pages/map', {
+      user: req.session.user,
+      positions
+    });
+
+  } catch (err) {
+    console.error("Erreur carte :", err.message);
+    res.render('pages/map', {
+      user: req.session.user,
+      positions: [],
+      error: "Erreur de chargement des données GPS"
+    });
+  }
+});
+
+// PAGE : PARAMÈTRES
+router.get('/settings', requireLogin, (req, res) => {
+  res.render('pages/settings', {
+    user: req.session.user
+  });
 });
 
 module.exports = router;

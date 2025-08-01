@@ -6,13 +6,23 @@
   <link rel="stylesheet" href="/css/dashboard.css">
 </head>
 <body>
+  <nav>
+    <ul class="nav-links">
+      <li><a href="/dashboard">📍 Position</a></li>
+      <li><a href="/history">📜 Historique</a></li>
+      <li><a href="/stop">⛔ Arrêt</a></li>
+      <li><a href="/map">🗺️ Carte</a></li>
+      <li><a href="/settings">⚙️ Paramètres</a></li>
+    </ul>
+  </nav>
+
   <h1>Bienvenue <%= user.name %> — Véhicule : <%= user.vehiculeid %></h1>
 
   <% if (error) { %>
-    <p style="color: red;"><%= error %></p>
+    <p class="error"><%= error %></p>
   <% } %>
 
-  <table border="1" cellpadding="5" cellspacing="0">
+  <table>
     <thead>
       <tr>
         <th>#</th>

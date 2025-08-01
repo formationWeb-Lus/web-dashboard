@@ -1,102 +1,108 @@
+/* ----- BASE ----- */
 body {
   font-family: Arial, sans-serif;
   margin: 0;
-  padding: 40px;
+  padding: 10px;
   background-color: #f0f2f5;
   color: #333;
-  position: relative;
-}
-
-.logout-container {
-  position: absolute;
-  top: 20px;
-  right: 20px;
 }
 
 h1 {
-  font-size: 26px;
-  background-color: #9e075f;
-  color: white;
-  padding: 20px;
-  border-radius: 5px;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-}
-
-a {
-  text-decoration: none;
-  color: white;
-  background-color: #f44336;
-  padding: 10px 20px;
-  border-radius: 5px;
-  font-weight: bold;
-  transition: background-color 0.3s ease;
-}
-
-a:hover {
-  background-color: #d32f2f;
-}
-
-body {
-  font-family: Arial, sans-serif;
-  margin: 0;
-  padding: 0;
-  background-color: #f0f2f5;
-  color: #333;
-}
-
-.navbar {
-  background-color: #9e075f;
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 15px 30px;
-  position: sticky;
-  top: 0;
-  z-index: 1000;
-}
-
-.logo {
   font-size: 20px;
-  font-weight: bold;
+  background-color: #9e075f;
+  color: white;
+  padding: 15px;
+  border-radius: 5px;
+  text-align: center;
+  margin-bottom: 20px;
 }
 
+/* ----- MENU NAVIGATION ----- */
 .nav-links {
-  list-style: none;
   display: flex;
-  gap: 20px;
+  flex-wrap: wrap;
+  justify-content: center;
+  padding: 10px;
   margin: 0;
-  padding: 0;
+  background-color: #fff;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  gap: 10px;
+  list-style: none;
+}
+
+.nav-links li {
+  margin: 0;
 }
 
 .nav-links li a {
+  display: block;
+  padding: 10px 14px;
+  background-color: #9e075f;
   color: white;
   text-decoration: none;
+  border-radius: 5px;
   font-weight: bold;
-  padding: 8px 12px;
-  border-radius: 4px;
-  transition: background-color 0.3s;
+  text-align: center;
+  transition: background-color 0.3s ease;
 }
 
 .nav-links li a:hover {
   background-color: #c2185b;
 }
 
-.logout-btn {
-  background-color: #f44336;
-  color: white;
-  padding: 8px 16px;
-  border-radius: 4px;
-  text-decoration: none;
+/* ----- ERREUR ----- */
+.error {
+  color: red;
+  text-align: center;
   font-weight: bold;
-  transition: background-color 0.3s;
+  margin: 10px 0;
 }
 
-.logout-btn:hover {
-  background-color: #d32f2f;
+/* ----- TABLE RESPONSIVE ----- */
+.table-wrapper {
+  overflow-x: auto;
+  max-width: 100%;
 }
 
-.dashboard-content {
-  padding: 40px;
+table {
+  width: 100%;
+  min-width: 800px;
+  border-collapse: collapse;
+  margin-top: 20px;
+  background-color: white;
+  font-size: 14px;
 }
 
+table th,
+table td {
+  border: 1px solid #ccc;
+  padding: 8px;
+  text-align: left;
+}
+
+thead {
+  background-color: #f2f2f2;
+}
+
+/* ----- PETITS ÉCRANS ----- */
+@media (max-width: 600px) {
+  h1 {
+    font-size: 18px;
+    padding: 10px;
+  }
+
+  .nav-links {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .nav-links li a {
+    width: 100%;
+    padding: 10px;
+  }
+
+  table {
+    font-size: 13px;
+  }
+}

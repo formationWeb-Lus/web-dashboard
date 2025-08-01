@@ -1,0 +1,31 @@
+<%- include('../partials/header') %>
+
+<nav>
+  <ul class="nav">
+    <li><a href="/dashboard">📍 Position</a></li>
+    <li><a href="/history">📜 Historique</a></li>
+    <li><a href="/stop" class="active">⛔ Arrêt</a></li>
+    <li><a href="/map">🗺️ Carte</a></li>
+    <li><a href="/settings">⚙️ Paramètres</a></li>
+  </ul>
+</nav>
+
+<h2>⛔ Points d'arrêt détectés</h2>
+
+<p>Fonction à implémenter pour détecter les arrêts du véhicule en fonction des données GPS (position identique plusieurs fois, ou vitesse = 0).</p>
+
+<ul>
+  <% if (stops && stops.length > 0) { %>
+    <% stops.forEach(stop => { %>
+      <li>
+        <strong>Lieu :</strong> <%= stop.latitude %>, <%= stop.longitude %><br/>
+        <strong>Début :</strong> <%= stop.start %><br/>
+        <strong>Fin :</strong> <%= stop.end %>
+      </li>
+    <% }) %>
+  <% } else { %>
+    <p>Aucun arrêt détecté.</p>
+  <% } %>
+</ul>
+
+<%- include('../partials/footer') %>

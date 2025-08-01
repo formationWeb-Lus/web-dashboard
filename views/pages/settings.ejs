@@ -1,0 +1,28 @@
+<%- include('../partials/header') %>
+
+<nav>
+  <ul class="nav">
+    <li><a href="/dashboard">📍 Position</a></li>
+    <li><a href="/history">📜 Historique</a></li>
+    <li><a href="/stop">⛔ Arrêt</a></li>
+    <li><a href="/map">🗺️ Carte</a></li>
+    <li><a href="/settings" class="active">⚙️ Paramètres</a></li>
+  </ul>
+</nav>
+
+<h2>⚙️ Paramètres</h2>
+
+<p>Modifier les paramètres du compte ou du véhicule ici.</p>
+
+<ul>
+  <li>Nom d'utilisateur : <%= user.name %></li>
+  <li>Téléphone : <%= user.phone || 'Non défini' %></li>
+  <li>Véhicule ID : <%= user.vehiculeid %></li>
+</ul>
+
+<form method="POST" action="/settings/update">
+  <!-- À compléter plus tard -->
+  <button type="submit" disabled>Modifier les informations</button>
+</form>
+
+<%- include('../partials/footer') %>

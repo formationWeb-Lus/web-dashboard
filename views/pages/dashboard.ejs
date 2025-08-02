@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <title>Dashboard - <%= user.name %></title>
-  <link rel="stylesheet" href="/css/dashboard.css">
+  <meta charset="UTF-8" />
+  <title>Dashboard - <%= user.firstname %> <%= user.name %></title>
+  <link rel="stylesheet" href="/css/dashboard.css" />
 </head>
 <body>
   <nav>
@@ -16,7 +16,29 @@
     </ul>
   </nav>
 
-  <h1>Bienvenue <%= user.name %> — Véhicule : <%= user.vehiculeid %></h1>
+  <h1>Bienvenue <%= user.firstname %> <%= user.name %></h1>
+
+  <h3>Véhicules associés :</h3>
+  <ul>
+    <li>
+      <a href="/dashboard?v=all" style="<%= (!selectedVehicule || selectedVehicule === 'all') ? 'font-weight: bold; color: green;' : '' %>">
+        Tous les véhicules
+      </a>
+    </li>
+    <% vehicules.forEach((v) => { %>
+      <li>
+        <a href="/dashboard?v=<%= encodeURIComponent(v) %>" style="<%= selectedVehicule === v ? 'font-weight: bold; color: green;' : '' %>">
+          <%= v %>
+        </a>
+      </li>
+    <% }) %>
+  </ul>
+
+  <% if (selectedVehicule && selectedVehicule !== 'all') { %>
+    <h2>🟢 Positions du véhicule : <%= selectedVehicule %></h2>
+  <% } else { %>
+    <h2>🟡 Positions de tous les véhicules</h2>
+  <% } %>
 
   <% if (error) { %>
     <p class="error"><%= error %></p>
@@ -29,7 +51,7 @@
         <th>Véhicule</th>
         <th>Latitude</th>
         <th>Longitude</th>
-        <th>Vitesse</th>
+        <th>Vitesse (km/h)</th>
         <th>Heure</th>
         <th>Adresse complète</th>
         <th>Quartier</th>
@@ -46,13 +68,13 @@
           <td><%= p.vehiculeid %></td>
           <td><%= p.latitude %></td>
           <td><%= p.longitude %></td>
-          <td><%= p.vitesse || p.speed %> km/h</td>
-          <td><%= p.createdAt ? new Date(p.createdAt).toLocaleString('fr-FR') : 'Date inconnue' %></td>
-          <td><%= p.adresse || "Adresse indisponible" %></td>
+          <td><%= p.vitesse || p.speed || 0 %></td>
+          <td><%= p.timestamp ? new Date(p.timestamp).toLocaleString('fr-FR') : 'Date inconnue' %></td>
+          <td><%= p.adresse || p.rue || "Adresse indisponible" %></td>
           <td><%= p.quartier || '-' %></td>
           <td><%= p.ville || '-' %></td>
-          <td><%= p.territoire || '-' %></td>
-          <td><%= p.province || '-' %></td>
+          <td><%= p.territoire || p.comte || '-' %></td>
+          <td><%= p.province || p.region || '-' %></td>
           <td><%= p.pays || '-' %></td>
         </tr>
       <% }) %>

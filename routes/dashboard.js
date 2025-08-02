@@ -9,22 +9,34 @@ function requireLogin(req, res, next) {
   next();
 }
 
-// PAGE : POSITION ACTUELLE (dashboard)
 router.get('/dashboard', requireLogin, async (req, res) => {
   try {
     const token = req.session.token;
-    const vehiculeid = req.session.user.vehiculeid;
+    const vehicules = req.session.vehicules || [];
+    let selectedVehicule = req.query.v || 'all'; // 'all' par défaut si rien choisi
 
     const response = await axios.get('https://gps-device-server.onrender.com/api/positions', {
       headers: { Authorization: `Bearer ${token}` }
     });
 
     let positions = Array.isArray(response.data) ? response.data : [];
+    console.log("Positions totales reçues :", positions.length);
 
-    positions = positions
-      .filter(p => p.vehiculeid === vehiculeid)
-      .slice(-5);
+    // Véhicules présents dans les données reçues (pour debug)
+    const vehiculesDansPositions = [...new Set(positions.map(p => p.vehiculeid))];
+    console.log("Véhicules dans positions:", vehiculesDansPositions);
 
+    // Filtrer selon selectedVehicule sauf si 'all'
+    if (selectedVehicule.toLowerCase() !== 'all') {
+      positions = positions.filter(p => p.vehiculeid.toLowerCase() === selectedVehicule.toLowerCase());
+    }
+
+    console.log(`Positions après filtre pour "${selectedVehicule}":`, positions.length);
+
+    // Garder les 5 dernières positions
+    positions = positions.slice(-5);
+
+    // Géocodage enrichi
     const enrichedPositions = await Promise.all(
       positions.map(async (p) => {
         try {
@@ -50,7 +62,6 @@ router.get('/dashboard', requireLogin, async (req, res) => {
             province: comps.state || '',
             pays: comps.country || ''
           };
-
         } catch (geoErr) {
           console.error("Erreur géocodage :", geoErr.message);
           return { ...p, adresse: "Erreur géocodage" };
@@ -58,8 +69,11 @@ router.get('/dashboard', requireLogin, async (req, res) => {
       })
     );
 
+    // Envoi à la vue EJS
     res.render('pages/dashboard', {
       user: req.session.user,
+      vehicules,
+      selectedVehicule,
       positions: enrichedPositions,
       error: null
     });
@@ -68,81 +82,12 @@ router.get('/dashboard', requireLogin, async (req, res) => {
     console.error("Erreur dashboard :", err.message);
     res.render('pages/dashboard', {
       user: req.session.user,
+      vehicules: req.session.vehicules || [],
+      selectedVehicule: null,
       positions: [],
       error: "Erreur de chargement des données"
     });
   }
-});
-
-
-// PAGE : HISTORIQUE
-router.get('/history', requireLogin, async (req, res) => {
-  try {
-    const token = req.session.token;
-    const vehiculeid = req.session.user.vehiculeid;
-
-    const response = await axios.get('https://gps-device-server.onrender.com/api/positions', {
-      headers: { Authorization: `Bearer ${token}` }
-    });
-
-    const positions = response.data.filter(p => p.vehiculeid === vehiculeid);
-
-    res.render('pages/history', {
-      user: req.session.user,
-      positions
-    });
-
-  } catch (err) {
-    console.error("Erreur historique :", err.message);
-    res.render('pages/history', {
-      user: req.session.user,
-      positions: [],
-      error: "Impossible de charger l'historique"
-    });
-  }
-});
-
-// PAGE : ARRÊTS (à implémenter selon ta logique de détection d’arrêt)
-router.get('/stop', requireLogin, async (req, res) => {
-  // Logique d’arrêt possible : si 2 ou 3 points ont la même position (arrêt)
-  res.render('pages/stop', {
-    user: req.session.user,
-    stops: [] // à remplir plus tard
-  });
-});
-
-// PAGE : CARTE AVEC TRACE GPS
-router.get('/map', requireLogin, async (req, res) => {
-  try {
-    const token = req.session.token;
-    const vehiculeid = req.session.user.vehiculeid;
-
-    const response = await axios.get('https://gps-device-server.onrender.com/api/positions', {
-      headers: { Authorization: `Bearer ${token}` }
-    });
-
-    const positions = response.data.filter(p => p.vehiculeid === vehiculeid);
-
-    res.render('pages/map', {
-      user: req.session.user,
-      positions
-    });
-
-  } catch (err) {
-    console.error("Erreur carte :", err.message);
-    res.render('pages/map', {
-      user: req.session.user,
-      positions: [],
-      error: "Erreur de chargement des données GPS"
-    });
-  }
-});
-
-// PAGE : PARAMÈTRES
-router.get('/settings', requireLogin, (req, res) => {
-  res.render('pages/settings', {
-    user: req.session.user
-  });
 });
 
 module.exports = router;

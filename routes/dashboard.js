@@ -9,101 +9,99 @@ function requireLogin(req, res, next) {
   next();
 }
 
-// Fonction de normalisation : trim, minuscule, sans espaces
-function normalize(str) {
-  return (str || '').trim().toLowerCase().replace(/\s+/g, '');
-}
-
 router.get('/dashboard', requireLogin, async (req, res) => {
   try {
     const token = req.session.token;
     const vehicules = req.session.vehicules || [];
-    let selectedVehicule = req.query.v || 'all'; // 'all' par défaut
+    const selectedVehicule = req.query.v || 'all';
 
     // Appel à l’API de positions
-    const response = await axios.get('https://gps-device-server.onrender.com/api/positions/user', {
+    const apiUrl = 'https://gps-device-server.onrender.com/api/positions/user';
+    const apiRes = await axios.get(apiUrl, {
       headers: { Authorization: `Bearer ${token}` }
     });
 
-    let positions = Array.isArray(response.data) ? response.data : [];
+    console.log("📥 Données brutes reçues de l'API :", JSON.stringify(apiRes.data, null, 2));
+
+    let positions = [];
+    if (Array.isArray(apiRes.data)) {
+      positions = apiRes.data;
+    } else if (Array.isArray(apiRes.data.positions)) {
+      positions = apiRes.data.positions;
+    }
+
     console.log("✅ Positions totales reçues :", positions.length);
 
-    // Map ID => nom pour les véhicules de l'utilisateur
+    // Map ID => nom pour les véhicules
     const idToNomMap = {};
     vehicules.forEach(v => {
       idToNomMap[v.id] = v.nom;
     });
 
-    // Debug : véhicules présents dans les positions reçues
+    // Liste des noms des véhicules trouvés dans les positions
     const vehiculesDansPositions = [...new Set(positions.map(p => idToNomMap[p.vehiculeid] || p.vehiculeid))];
     console.log("🚗 Véhicules dans les positions :", vehiculesDansPositions);
 
-    // Filtrage selon le véhicule sélectionné (via nom)
-    if (normalize(selectedVehicule) !== 'all') {
-      positions = positions.filter(p => {
-        const nomVehicule = idToNomMap[p.vehiculeid];
-        const isMatch = normalize(nomVehicule) === normalize(selectedVehicule);
-        if (!isMatch) {
-          console.log(`⛔ Pas un match : "${selectedVehicule}" vs "${nomVehicule}"`);
-        }
-        return isMatch;
+    // Filtrage par nom du véhicule si sélectionné
+    let filteredPositions = positions;
+    if (selectedVehicule.toLowerCase() !== 'all') {
+      filteredPositions = positions.filter(p => {
+        const nom = idToNomMap[p.vehiculeid];
+        return nom && nom.toLowerCase() === selectedVehicule.toLowerCase();
       });
     }
 
-    console.log(`📍 Positions après filtre pour "${selectedVehicule}":`, positions.length);
+    console.log(`📍 Positions après filtre pour "${selectedVehicule}" :`, filteredPositions.length);
 
     // Ne garder que les 5 dernières
-    positions = positions.slice(-5);
+    filteredPositions = filteredPositions.slice(-5);
 
-    // 1. Géocodage enrichi pour toutes les positions
-const enrichedPositions = await Promise.all(
-  positions.map(async (p) => {
-    try {
-      const geoRes = await axios.get('https://api.opencagedata.com/geocode/v1/json', {
-        params: {
-          key: process.env.OPENCAGE_API_KEY,
-          q: `${p.latitude},${p.longitude}`,
-          language: 'fr',
-          no_annotations: 1
+    // Géocodage pour chaque position
+    const enrichedPositions = await Promise.all(
+      filteredPositions.map(async (p) => {
+        try {
+          const geoRes = await axios.get('https://api.opencagedata.com/geocode/v1/json', {
+            params: {
+              key: process.env.OPENCAGE_API_KEY,
+              q: `${p.latitude},${p.longitude}`,
+              language: 'fr',
+              no_annotations: 1
+            }
+          });
+
+          const result = geoRes.data.results[0];
+          const comps = result?.components || {};
+          const adresse = result?.formatted || "Adresse inconnue";
+
+          return {
+            ...p,
+            vehiculeNom: idToNomMap[p.vehiculeid] || 'Inconnu',
+            adresse,
+            quartier: comps.suburb || comps.village || comps.city_district || '',
+            ville: comps.city || comps.town || '',
+            territoire: comps.county || '',
+            province: comps.state || '',
+            pays: comps.country || ''
+          };
+        } catch (geoErr) {
+          console.error("❌ Erreur géocodage :", geoErr.message);
+          return {
+            ...p,
+            vehiculeNom: idToNomMap[p.vehiculeid] || 'Inconnu',
+            adresse: "Erreur géocodage"
+          };
         }
-      });
+      })
+    );
 
-      const result = geoRes.data.results[0];
-      const comps = result?.components || {};
-      const adresse = result?.formatted || "Adresse inconnue";
-
-      return {
-        ...p,
-        vehiculeNom: idToNomMap[p.vehiculeid] || 'Inconnu',
-        adresse,
-        quartier: comps.suburb || comps.village || comps.city_district || '',
-        ville: comps.city || comps.town || '',
-        territoire: comps.county || '',
-        province: comps.state || '',
-        pays: comps.country || ''
-      };
-    } catch (geoErr) {
-      console.error("⚠️ Erreur géocodage :", geoErr.message);
-      return {
-        ...p,
-        vehiculeNom: idToNomMap[p.vehiculeid] || 'Inconnu',
-        adresse: "Erreur géocodage"
-      };
-    }
-  })
-);
-
-// 2. Puis, prendre les 5 dernières (après enrichissement)
-const lastPositions = enrichedPositions.slice(-5);
-
-// 3. Envoi à la vue
-res.render('pages/dashboard', {
-  user: req.session.user,
-  vehicules,
-  selectedVehicule,
-  positions: lastPositions,
-  error: null
-});
+    // Rendu de la vue
+    res.render('pages/dashboard', {
+      user: req.session.user,
+      vehicules,
+      selectedVehicule,
+      positions: enrichedPositions,
+      error: null
+    });
 
   } catch (err) {
     console.error("❌ Erreur dashboard :", err.message);

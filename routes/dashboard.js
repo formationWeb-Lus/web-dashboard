@@ -55,52 +55,55 @@ router.get('/dashboard', requireLogin, async (req, res) => {
     // Ne garder que les 5 dernières
     positions = positions.slice(-5);
 
-    // Géocodage enrichi pour chaque position
-    const enrichedPositions = await Promise.all(
-      positions.map(async (p) => {
-        try {
-          const geoRes = await axios.get('https://api.opencagedata.com/geocode/v1/json', {
-            params: {
-              key: process.env.OPENCAGE_API_KEY,
-              q: `${p.latitude},${p.longitude}`,
-              language: 'fr',
-              no_annotations: 1
-            }
-          });
-
-          const result = geoRes.data.results[0];
-          const comps = result?.components || {};
-          const adresse = result?.formatted || "Adresse inconnue";
-
-          return {
-            ...p,
-            vehiculeNom: idToNomMap[p.vehiculeid] || 'Inconnu',
-            adresse,
-            quartier: comps.suburb || comps.village || comps.city_district || '',
-            ville: comps.city || comps.town || '',
-            territoire: comps.county || '',
-            province: comps.state || '',
-            pays: comps.country || ''
-          };
-        } catch (geoErr) {
-          console.error("⚠️ Erreur géocodage :", geoErr.message);
-          return {
-            ...p,
-            vehiculeNom: idToNomMap[p.vehiculeid] || 'Inconnu',
-            adresse: "Erreur géocodage"
-          };
+    // 1. Géocodage enrichi pour toutes les positions
+const enrichedPositions = await Promise.all(
+  positions.map(async (p) => {
+    try {
+      const geoRes = await axios.get('https://api.opencagedata.com/geocode/v1/json', {
+        params: {
+          key: process.env.OPENCAGE_API_KEY,
+          q: `${p.latitude},${p.longitude}`,
+          language: 'fr',
+          no_annotations: 1
         }
-      })
-    );
+      });
 
-    // Rendu de la vue
-    res.render('pages/dashboard', {
-      user: req.session.user,
-      vehicules,
-      selectedVehicule,
-      positions: enrichedPositions,
-      error: null
-    });
+      const result = geoRes.data.results[0];
+      const comps = result?.components || {};
+      const adresse = result?.formatted || "Adresse inconnue";
+
+      return {
+        ...p,
+        vehiculeNom: idToNomMap[p.vehiculeid] || 'Inconnu',
+        adresse,
+        quartier: comps.suburb || comps.village || comps.city_district || '',
+        ville: comps.city || comps.town || '',
+        territoire: comps.county || '',
+        province: comps.state || '',
+        pays: comps.country || ''
+      };
+    } catch (geoErr) {
+      console.error("⚠️ Erreur géocodage :", geoErr.message);
+      return {
+        ...p,
+        vehiculeNom: idToNomMap[p.vehiculeid] || 'Inconnu',
+        adresse: "Erreur géocodage"
+      };
+    }
+  })
+);
+
+// 2. Puis, prendre les 5 dernières (après enrichissement)
+const lastPositions = enrichedPositions.slice(-5);
+
+// 3. Envoi à la vue
+res.render('pages/dashboard', {
+  user: req.session.user,
+  vehicules,
+  selectedVehicule,
+  positions: lastPositions,
+  error: null
+});
 
   } catch (err) {
     console.error("❌ Erreur dashboard :", err.message);

@@ -15,48 +15,37 @@ router.get('/dashboard', requireLogin, async (req, res) => {
     const vehicules = req.session.vehicules || [];
     const selectedVehicule = req.query.v || 'all';
 
-    // Appel à l’API de positions
+    // Appel API positions
     const apiUrl = 'https://gps-device-server.onrender.com/api/positions/user';
     const apiRes = await axios.get(apiUrl, {
       headers: { Authorization: `Bearer ${token}` }
     });
 
-    console.log("📥 Données brutes reçues de l'API :", JSON.stringify(apiRes.data, null, 2));
+    let positions = Array.isArray(apiRes.data)
+      ? apiRes.data
+      : Array.isArray(apiRes.data.positions)
+      ? apiRes.data.positions
+      : [];
 
-    let positions = [];
-    if (Array.isArray(apiRes.data)) {
-      positions = apiRes.data;
-    } else if (Array.isArray(apiRes.data.positions)) {
-      positions = apiRes.data.positions;
-    }
-
-    console.log("✅ Positions totales reçues :", positions.length);
-
-    // Map ID => nom pour les véhicules
+    // Map id -> nom
     const idToNomMap = {};
     vehicules.forEach(v => {
       idToNomMap[v.id] = v.nom;
     });
 
-    // Liste des noms des véhicules trouvés dans les positions
-    const vehiculesDansPositions = [...new Set(positions.map(p => idToNomMap[p.vehiculeid] || p.vehiculeid))];
-    console.log("🚗 Véhicules dans les positions :", vehiculesDansPositions);
-
-    // Filtrage par nom du véhicule si sélectionné
+    // Filtrer si nécessaire
     let filteredPositions = positions;
     if (selectedVehicule.toLowerCase() !== 'all') {
-      filteredPositions = positions.filter(p => {
+      filteredPositions = filteredPositions.filter(p => {
         const nom = idToNomMap[p.vehiculeid];
         return nom && nom.toLowerCase() === selectedVehicule.toLowerCase();
       });
     }
 
-    console.log(`📍 Positions après filtre pour "${selectedVehicule}" :`, filteredPositions.length);
-
-    // Ne garder que les 5 dernières
+    // Dernières 5 positions
     filteredPositions = filteredPositions.slice(-5);
 
-    // Géocodage pour chaque position
+    // Géocodage
     const enrichedPositions = await Promise.all(
       filteredPositions.map(async (p) => {
         try {
@@ -84,7 +73,6 @@ router.get('/dashboard', requireLogin, async (req, res) => {
             pays: comps.country || ''
           };
         } catch (geoErr) {
-          console.error("❌ Erreur géocodage :", geoErr.message);
           return {
             ...p,
             vehiculeNom: idToNomMap[p.vehiculeid] || 'Inconnu',
@@ -94,7 +82,6 @@ router.get('/dashboard', requireLogin, async (req, res) => {
       })
     );
 
-    // Rendu de la vue
     res.render('pages/dashboard', {
       user: req.session.user,
       vehicules,

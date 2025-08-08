@@ -12,41 +12,39 @@ function requireLogin(req, res, next) {
 // Route /dashboard
 router.get('/dashboard', requireLogin, async (req, res) => {
   try {
-    const token = req.session.token;
-    const vehicules = req.session.vehicules || [];
+    const user = req.session.user;
     const selectedVehicule = req.query.v || 'all';
+    const phone = user.phone;
 
-    console.log('✅ Utilisateur connecté :', req.session.user);
-    console.log('🚗 Véhicules associés :', vehicules.map(v => v.nom));
-    console.log('🔐 Token API reçu :', token);
+    console.log('✅ Utilisateur connecté :', user);
 
-    // 🔄 Récupération des positions
-    const response = await axios.get('https://gps-device-server.onrender.com/api/positions/user', {
-      headers: { Authorization: `Bearer ${token}` }
+    // 🔄 Requête vers /api/positions/user avec le phone
+    const response = await axios.post('https://gps-device-server.onrender.com/api/positions/user', {
+      phone
     });
 
-    const rawData = response.data;
-    console.log('📥 Données brutes reçues de l\'API :', rawData);
+    const { vehiculeids } = response.data;
 
-    let positions = Array.isArray(rawData) ? rawData : [];
-    console.log('✅ Positions totales reçues :', positions.length);
+    console.log('🚗 Véhicules associés (IDs) :', vehiculeids);
 
-    // 🗺️ Mapping ID => nom des véhicules
-    const idToNomMap = {};
-    vehicules.forEach(v => {
-      idToNomMap[v.id] = v.nom;
-    });
+    // 🔄 Requête pour récupérer toutes les positions associées à ces vehiculeids
+    const allPositions = [];
 
-    const vehiculesDansPositions = [...new Set(positions.map(p => idToNomMap[p.vehiculeid] || p.vehiculeid))];
-    console.log('🚗 Véhicules dans les positions :', vehiculesDansPositions);
+    for (const vehiculeid of vehiculeids) {
+      try {
+        const posRes = await axios.get(`https://gps-device-server.onrender.com/api/positions/vehicule/${vehiculeid}`);
+        allPositions.push(...posRes.data);
+      } catch (err) {
+        console.error(`❌ Erreur récupération positions pour véhicule ${vehiculeid} :`, err.message);
+      }
+    }
+
+    console.log('✅ Positions totales reçues :', allPositions.length);
 
     // 🎯 Filtrage des positions selon véhicule sélectionné
-    let filteredPositions = positions;
+    let filteredPositions = allPositions;
     if (selectedVehicule.toLowerCase() !== 'all') {
-      filteredPositions = positions.filter(p => {
-        const nomVehicule = idToNomMap[p.vehiculeid];
-        return nomVehicule && nomVehicule.toLowerCase() === selectedVehicule.toLowerCase();
-      });
+      filteredPositions = allPositions.filter(p => p.vehiculeid.toLowerCase() === selectedVehicule.toLowerCase());
     }
 
     console.log(`📍 Positions après filtre pour "${selectedVehicule}" :`, filteredPositions.length);
@@ -73,7 +71,6 @@ router.get('/dashboard', requireLogin, async (req, res) => {
 
           return {
             ...p,
-            vehiculeNom: idToNomMap[p.vehiculeid] || 'Inconnu',
             adresse,
             quartier: comps.suburb || comps.village || comps.city_district || '',
             ville: comps.city || comps.town || '',
@@ -85,7 +82,6 @@ router.get('/dashboard', requireLogin, async (req, res) => {
           console.error("❌ Erreur géocodage :", geoErr.message);
           return {
             ...p,
-            vehiculeNom: idToNomMap[p.vehiculeid] || 'Inconnu',
             adresse: "Erreur géocodage"
           };
         }
@@ -94,8 +90,8 @@ router.get('/dashboard', requireLogin, async (req, res) => {
 
     // 🖥️ Rendu de la vue
     res.render('pages/dashboard', {
-      user: req.session.user,
-      vehicules,
+      user,
+      vehicules: vehiculeids, // ici, ce sont des noms/id bruts
       selectedVehicule,
       positions: enrichedPositions,
       error: null
@@ -105,7 +101,7 @@ router.get('/dashboard', requireLogin, async (req, res) => {
     console.error('❌ Erreur dashboard :', err.message);
     res.render('pages/dashboard', {
       user: req.session.user,
-      vehicules: req.session.vehicules || [],
+      vehicules: [],
       selectedVehicule: null,
       positions: [],
       error: "Erreur de chargement des données. Veuillez réessayer plus tard."

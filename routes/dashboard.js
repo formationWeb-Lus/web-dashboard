@@ -1,110 +1,77 @@
 const express = require('express');
 const router = express.Router();
 const axios = require('axios');
-require('dotenv').config();
+const pool = require('../config/db');
+const requireLogin = require('../middlewares/requireLogin');
 
-// Middleware de sécurité
-function requireLogin(req, res, next) {
-  if (!req.session.user) return res.redirect('/login');
-  next();
-}
-
-// Route /dashboard
 router.get('/dashboard', requireLogin, async (req, res) => {
+  const user = req.session.user;
+  const selectedVehicule = req.query.v || 'all';
+
   try {
-    const user = req.session.user;
-    const selectedVehicule = req.query.v || 'all';
-    const phone = user.phone;
+    // Récupérer les véhicules de l’utilisateur
+    const vehiculesResult = await pool.query('SELECT id, nom FROM vehicules WHERE user_id = $1', [user.id]);
+    const vehicules = vehiculesResult.rows;
+
+    const vehiculeIds = (vehicules || []).map(v => v.id); // Sécurité ici
+    const vehiculeNoms = (vehicules || []).map(v => v.nom);
 
     console.log('✅ Utilisateur connecté :', user);
+    console.log('🚗 Véhicules associés :', vehiculeNoms);
+    console.log('🚗 Véhicules associés (IDs) :', vehiculeIds);
 
-    // 🔄 Requête vers /api/positions/user avec le phone
-    const response = await axios.post('https://gps-device-server.onrender.com/api/positions/user', {
-      phone
-    });
-
-    const { vehiculeids } = response.data;
-
-    console.log('🚗 Véhicules associés (IDs) :', vehiculeids);
-
-    // 🔄 Requête pour récupérer toutes les positions associées à ces vehiculeids
-    const allPositions = [];
-
-    for (const vehiculeid of vehiculeids) {
-      try {
-        const posRes = await axios.get(`https://gps-device-server.onrender.com/api/positions/vehicule/${vehiculeid}`);
-        allPositions.push(...posRes.data);
-      } catch (err) {
-        console.error(`❌ Erreur récupération positions pour véhicule ${vehiculeid} :`, err.message);
-      }
+    // Si aucun véhicule, on affiche directement la page
+    if (!vehiculeIds.length) {
+      return res.render('dashboard', {
+        user,
+        selectedVehicule,
+        vehicules,
+        positions: [],
+        error: null,
+      });
     }
 
-    console.log('✅ Positions totales reçues :', allPositions.length);
-
-    // 🎯 Filtrage des positions selon véhicule sélectionné
-    let filteredPositions = allPositions;
-    if (selectedVehicule.toLowerCase() !== 'all') {
-      filteredPositions = allPositions.filter(p => p.vehiculeid.toLowerCase() === selectedVehicule.toLowerCase());
-    }
-
-    console.log(`📍 Positions après filtre pour "${selectedVehicule}" :`, filteredPositions.length);
-
-    // ✅ Ne garder que les 5 dernières positions
-    filteredPositions = filteredPositions.slice(-5);
-
-    // 🌍 Géocodage enrichi
-    const enrichedPositions = await Promise.all(
-      filteredPositions.map(async (p) => {
-        try {
-          const geoRes = await axios.get('https://api.opencagedata.com/geocode/v1/json', {
-            params: {
-              key: process.env.OPENCAGE_API_KEY,
-              q: `${p.latitude},${p.longitude}`,
-              language: 'fr',
-              no_annotations: 1
-            }
-          });
-
-          const result = geoRes.data.results[0];
-          const comps = result?.components || {};
-          const adresse = result?.formatted || "Adresse inconnue";
-
-          return {
-            ...p,
-            adresse,
-            quartier: comps.suburb || comps.village || comps.city_district || '',
-            ville: comps.city || comps.town || '',
-            territoire: comps.county || '',
-            province: comps.state || '',
-            pays: comps.country || ''
-          };
-        } catch (geoErr) {
-          console.error("❌ Erreur géocodage :", geoErr.message);
-          return {
-            ...p,
-            adresse: "Erreur géocodage"
-          };
-        }
-      })
+    // Générer un token JWT temporaire pour l’API
+    const jwt = require('jsonwebtoken');
+    const token = jwt.sign(
+      { vehiculeId: selectedVehicule !== 'all' ? selectedVehicule : null, userId: user.id },
+      process.env.JWT_SECRET || 'secret123',
+      { expiresIn: '1h' }
     );
+    console.log('🔐 Token API reçu :', token);
 
-    // 🖥️ Rendu de la vue
-    res.render('pages/dashboard', {
+    // Construire l’URL de l’API
+    let url = 'https://gps-device-server.onrender.com/api/positions/user';
+
+    const headers = {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    };
+
+    const params = selectedVehicule === 'all' ? {} : { vehicule: selectedVehicule };
+
+    // Appel à l’API
+    const apiResponse = await axios.get(url, { headers, params });
+
+    const positions = apiResponse.data || [];
+    console.log('📍 Positions récupérées :', positions.length);
+
+    res.render('dashboard', {
       user,
-      vehicules: vehiculeids, // ici, ce sont des noms/id bruts
       selectedVehicule,
-      positions: enrichedPositions,
-      error: null
+      vehicules,
+      positions,
+      error: null,
     });
-
   } catch (err) {
     console.error('❌ Erreur dashboard :', err.message);
-    res.render('pages/dashboard', {
+
+    res.render('dashboard', {
       user: req.session.user,
+      selectedVehicule: req.query.v || 'all',
       vehicules: [],
-      selectedVehicule: null,
       positions: [],
-      error: "Erreur de chargement des données. Veuillez réessayer plus tard."
+      error: 'Une erreur est survenue lors du chargement des données.',
     });
   }
 });

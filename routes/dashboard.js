@@ -9,6 +9,11 @@ function requireLogin(req, res, next) {
   next();
 }
 
+// Fonction de normalisation : trim, minuscule, sans espaces
+function normalize(str) {
+  return (str || '').trim().toLowerCase().replace(/\s+/g, '');
+}
+
 router.get('/dashboard', requireLogin, async (req, res) => {
   try {
     const token = req.session.token;
@@ -21,7 +26,7 @@ router.get('/dashboard', requireLogin, async (req, res) => {
     });
 
     let positions = Array.isArray(response.data) ? response.data : [];
-    console.log("Positions totales reçues :", positions.length);
+    console.log("✅ Positions totales reçues :", positions.length);
 
     // Map ID => nom pour les véhicules de l'utilisateur
     const idToNomMap = {};
@@ -29,19 +34,23 @@ router.get('/dashboard', requireLogin, async (req, res) => {
       idToNomMap[v.id] = v.nom;
     });
 
-    // Debug : véhicules dans les positions
+    // Debug : véhicules présents dans les positions reçues
     const vehiculesDansPositions = [...new Set(positions.map(p => idToNomMap[p.vehiculeid] || p.vehiculeid))];
-    console.log("Véhicules dans positions:", vehiculesDansPositions);
+    console.log("🚗 Véhicules dans les positions :", vehiculesDansPositions);
 
-    // Filtrage selon le véhicule sélectionné (par nom)
-    if (selectedVehicule.toLowerCase() !== 'all') {
+    // Filtrage selon le véhicule sélectionné (via nom)
+    if (normalize(selectedVehicule) !== 'all') {
       positions = positions.filter(p => {
         const nomVehicule = idToNomMap[p.vehiculeid];
-        return nomVehicule && nomVehicule.toLowerCase() === selectedVehicule.toLowerCase();
+        const isMatch = normalize(nomVehicule) === normalize(selectedVehicule);
+        if (!isMatch) {
+          console.log(`⛔ Pas un match : "${selectedVehicule}" vs "${nomVehicule}"`);
+        }
+        return isMatch;
       });
     }
 
-    console.log(`Positions après filtre pour "${selectedVehicule}":`, positions.length);
+    console.log(`📍 Positions après filtre pour "${selectedVehicule}":`, positions.length);
 
     // Ne garder que les 5 dernières
     positions = positions.slice(-5);
@@ -74,7 +83,7 @@ router.get('/dashboard', requireLogin, async (req, res) => {
             pays: comps.country || ''
           };
         } catch (geoErr) {
-          console.error("Erreur géocodage :", geoErr.message);
+          console.error("⚠️ Erreur géocodage :", geoErr.message);
           return {
             ...p,
             vehiculeNom: idToNomMap[p.vehiculeid] || 'Inconnu',
@@ -94,7 +103,7 @@ router.get('/dashboard', requireLogin, async (req, res) => {
     });
 
   } catch (err) {
-    console.error("Erreur dashboard :", err.message);
+    console.error("❌ Erreur dashboard :", err.message);
     res.render('pages/dashboard', {
       user: req.session.user,
       vehicules: req.session.vehicules || [],

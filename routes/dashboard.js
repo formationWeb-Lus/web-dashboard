@@ -13,30 +13,40 @@ router.get('/dashboard', requireLogin, async (req, res) => {
   try {
     const token = req.session.token;
     const vehicules = req.session.vehicules || [];
-    let selectedVehicule = req.query.v || 'all'; // 'all' par défaut si rien choisi
+    let selectedVehicule = req.query.v || 'all'; // 'all' par défaut
 
-    const response = await axios.get('https://gps-device-server.onrender.com/api/positions', {
+    // Appel à l’API de positions
+    const response = await axios.get('https://gps-device-server.onrender.com/api/positions/user', {
       headers: { Authorization: `Bearer ${token}` }
     });
 
     let positions = Array.isArray(response.data) ? response.data : [];
     console.log("Positions totales reçues :", positions.length);
 
-    // Véhicules présents dans les données reçues (pour debug)
-    const vehiculesDansPositions = [...new Set(positions.map(p => p.vehiculeid))];
+    // Map ID => nom pour les véhicules de l'utilisateur
+    const idToNomMap = {};
+    vehicules.forEach(v => {
+      idToNomMap[v.id] = v.nom;
+    });
+
+    // Debug : véhicules dans les positions
+    const vehiculesDansPositions = [...new Set(positions.map(p => idToNomMap[p.vehiculeid] || p.vehiculeid))];
     console.log("Véhicules dans positions:", vehiculesDansPositions);
 
-    // Filtrer selon selectedVehicule sauf si 'all'
+    // Filtrage selon le véhicule sélectionné (par nom)
     if (selectedVehicule.toLowerCase() !== 'all') {
-      positions = positions.filter(p => p.vehiculeid.toLowerCase() === selectedVehicule.toLowerCase());
+      positions = positions.filter(p => {
+        const nomVehicule = idToNomMap[p.vehiculeid];
+        return nomVehicule && nomVehicule.toLowerCase() === selectedVehicule.toLowerCase();
+      });
     }
 
     console.log(`Positions après filtre pour "${selectedVehicule}":`, positions.length);
 
-    // Garder les 5 dernières positions
+    // Ne garder que les 5 dernières
     positions = positions.slice(-5);
 
-    // Géocodage enrichi
+    // Géocodage enrichi pour chaque position
     const enrichedPositions = await Promise.all(
       positions.map(async (p) => {
         try {
@@ -55,6 +65,7 @@ router.get('/dashboard', requireLogin, async (req, res) => {
 
           return {
             ...p,
+            vehiculeNom: idToNomMap[p.vehiculeid] || 'Inconnu',
             adresse,
             quartier: comps.suburb || comps.village || comps.city_district || '',
             ville: comps.city || comps.town || '',
@@ -64,12 +75,16 @@ router.get('/dashboard', requireLogin, async (req, res) => {
           };
         } catch (geoErr) {
           console.error("Erreur géocodage :", geoErr.message);
-          return { ...p, adresse: "Erreur géocodage" };
+          return {
+            ...p,
+            vehiculeNom: idToNomMap[p.vehiculeid] || 'Inconnu',
+            adresse: "Erreur géocodage"
+          };
         }
       })
     );
 
-    // Envoi à la vue EJS
+    // Rendu de la vue
     res.render('pages/dashboard', {
       user: req.session.user,
       vehicules,

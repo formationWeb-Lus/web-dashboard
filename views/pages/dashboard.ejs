@@ -4,6 +4,19 @@
   <meta charset="UTF-8" />
   <title>Dashboard - <%= user.firstname %> <%= user.name %></title>
   <link rel="stylesheet" href="/css/dashboard.css" />
+  <style>
+    .badge {
+      display: inline-block;
+      padding: 2px 6px;
+      border-radius: 8px;
+      font-size: 0.85em;
+      color: white;
+    }
+    .badge-Mercedes06 { background-color: #007bff; }
+    .badge-Toyota01 { background-color: #28a745; }
+    .badge-vehicule07 { background-color: #ff9900; }
+    .badge-Inconnu { background-color: #6c757d; }
+  </style>
 </head>
 <body>
   <nav>
@@ -62,10 +75,14 @@
       </tr>
     </thead>
     <tbody>
-      <% positions.forEach((p, index) => { %>
+      <% positions.forEach((p, index) => { 
+        const nomClasse = 'badge-' + (p.vehiculeNom || 'Inconnu').replace(/\s/g, '').replace(/[^a-zA-Z0-9]/g, '');
+      %>
         <tr>
           <td><%= index + 1 %></td>
-          <td><%= p.vehiculeid %></td>
+          <td>
+            <span class="badge <%= nomClasse %>"><%= p.vehiculeNom %></span>
+          </td>
           <td><%= p.latitude %></td>
           <td><%= p.longitude %></td>
           <td><%= p.vitesse || p.speed || 0 %></td>
@@ -80,5 +97,8 @@
       <% }) %>
     </tbody>
   </table>
+</body>
+</html>
+
 </body>
 </html>

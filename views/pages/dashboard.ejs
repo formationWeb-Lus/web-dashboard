@@ -72,7 +72,9 @@
         <option value="all" <%= selectedVehicule === 'all' ? 'selected' : '' %>>Tous les véhicules</option>
         <% if (vehicules && vehicules.length > 0) { %>
           <% vehicules.forEach(v => { %>
-            <option value="<%= v.nom %>" <%= selectedVehicule === v.nom ? 'selected' : '' %>><%= v.nom %></option>
+            <option value="<%= v.id %>" <%= selectedVehicule == v.id ? 'selected' : '' %>>
+              <%= v.nom || ('Véhicule ' + v.id) %>
+            </option>
           <% }) %>
         <% } else { %>
           <option disabled>Aucun véhicule trouvé</option>
@@ -83,8 +85,8 @@
 
   <% if (error) { %>
     <p class="status error"><%= error %></p>
-  <% } else if (!positions || positions.length === 0) { %>
-    <p class="status">Aucune position trouvée.</p>
+  <% } else if (!vehicules || vehicules.length === 0) { %>
+    <p class="status">Aucun véhicule trouvé.</p>
   <% } else { %>
     <table>
       <thead>
@@ -104,10 +106,13 @@
         </tr>
       </thead>
       <tbody>
-        <% positions.forEach((pos, index) => { %>
+        <% vehicules.forEach((v, index) => { 
+             const pos = v.last_position; 
+             if (!pos) return; 
+        %>
           <tr>
             <td><%= index + 1 %></td>
-            <td><%= pos.vehiculeNom || '-' %></td>
+            <td><%= v.nom || ('Véhicule ' + v.id) %></td>
             <td><%= pos.latitude || '-' %></td>
             <td><%= pos.longitude || '-' %></td>
             <td><%= pos.vitesse || 0 %></td>

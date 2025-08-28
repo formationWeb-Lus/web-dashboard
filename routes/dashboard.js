@@ -22,7 +22,7 @@ router.get('/dashboard', requireLogin, async (req, res) => {
 
     // 🔄 Requête vers ton backend pour obtenir TOUS les véhicules de l’utilisateur
     const response = await axios.get(
-      'https://gps-device-server.onrender.com/api/my-vehicles',
+      'https://gps-device-server.onrender.com/api/vehicules',
       {
         headers: { Authorization: `Bearer ${token}` }
       }

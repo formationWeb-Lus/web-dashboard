@@ -10,101 +10,47 @@
   </ul>
 </nav>
 
-<h2>🗺️ Carte du véhicule et de l'utilisateur</h2>
+<h2>🗺️ Carte des véhicules</h2>
 
-<div id="map" style="height: 500px; width: 100%; margin-bottom: 20px;"></div>
-<p id="distanceInfo">📏 En attente de la localisation...</p>
+<div class="select-wrapper" style="text-align:center; margin-bottom:10px;">
+  <label for="vehSelect">Sélectionner un véhicule : </label>
+  <select id="vehSelect">
+    <option value="all">Tous les véhicules</option>
+    <% vehicules.forEach(v => { %>
+      <option value="<%= v.vehiculeid %>" <%= vehicule === v.vehiculeid ? 'selected' : '' %> >
+        <%= v.vehiculeid %>
+      </option>
+    <% }) %>
+  </select>
+</div>
+
+<div id="map" style="height:500px; width:100%; margin-bottom:10px;"></div>
+<p id="distanceInfo" style="text-align:center;">📏 En attente de la localisation...</p>
 <button onclick="locateMe()">📍 Me localiser</button>
 
-<!-- Leaflet -->
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css"/>
-<script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
+<!-- Google Maps API -->
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCz_VhJ95x-dQl40Ok6cULkxX7K0C8O320"></script>
 
-<script>
+<!-- Front-end map.js -->
+<script type="module">
+  import { initVehicleMap } from '/js/map.js';
+
+  // Données passées depuis le serveur
+  const vehicules = <%- JSON.stringify(vehicules) %>;
   const positions = <%- JSON.stringify(positions) %>;
-  if (!positions.length) {
-    document.getElementById("map").innerHTML = "<p>Aucune position disponible.</p>";
-  } else {
-    const vehPos = positions[positions.length - 1]; // dernière position du véhicule
-    const map = L.map('map').setView([vehPos.latitude, vehPos.longitude], 13);
 
-    // OpenStreetMap tiles
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 19,
-      attribution: '© OpenStreetMap contributors'
-    }).addTo(map);
+  // Paramètres du lien (si on vient du tableau de bord)
+  const initialVehicule = "<%= vehicule || 'all' %>";
+  const initialLat = parseFloat("<%= lat || '0' %>");
+  const initialLng = parseFloat("<%= lng || '0' %>");
 
-    // Marqueur véhicule
-    const vehMarker = L.marker([vehPos.latitude, vehPos.longitude])
-      .addTo(map)
-      .bindPopup("🚗 Véhicule");
+  // Initialiser la carte
+  initVehicleMap(vehicules, positions, 'map', 'distanceInfo', 'vehSelect');
 
-    // Ligne vers l'utilisateur
-    let userMarker, userPolyline;
-
-    // Fonction de localisation
-    function locateMe() {
-      navigator.geolocation.getCurrentPosition(function(position) {
-        const userLat = position.coords.latitude;
-        const userLng = position.coords.longitude;
-
-        if (userMarker) map.removeLayer(userMarker);
-        if (userPolyline) map.removeLayer(userPolyline);
-
-        userMarker = L.marker([userLat, userLng], {
-          icon: L.icon({
-            iconUrl: 'https://maps.google.com/mapfiles/ms/icons/blue-dot.png',
-            iconSize: [32, 32],
-            iconAnchor: [16, 32],
-          })
-        }).addTo(map).bindPopup("👤 Vous êtes ici").openPopup();
-
-        userPolyline = L.polyline([
-          [vehPos.latitude, vehPos.longitude],
-          [userLat, userLng]
-        ], { color: 'red', weight: 3 }).addTo(map);
-
-        // Adapter la vue
-        const bounds = L.latLngBounds([
-          [vehPos.latitude, vehPos.longitude],
-          [userLat, userLng]
-        ]);
-        map.fitBounds(bounds);
-
-        // Calculer la distance
-        const distance = getDistanceInMeters(vehPos.latitude, vehPos.longitude, userLat, userLng);
-        document.getElementById('distanceInfo').innerText =
-          `📏 Distance entre vous et le véhicule : ${distance.toFixed(2)} mètres`;
-
-      }, function(error) {
-        document.getElementById('distanceInfo').innerText = "Erreur de géolocalisation.";
-        console.error(error);
-      }, {
-        enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 0
-      });
-    }
-
-    // Appeler automatiquement au chargement
-    locateMe();
-
-    // Fonction de distance Haversine
-    function getDistanceInMeters(lat1, lon1, lat2, lon2) {
-      const R = 6371e3;
-      const φ1 = lat1 * Math.PI / 180;
-      const φ2 = lat2 * Math.PI / 180;
-      const Δφ = (lat2 - lat1) * Math.PI / 180;
-      const Δλ = (lon2 - lon1) * Math.PI / 180;
-
-      const a = Math.sin(Δφ / 2) ** 2 +
-                Math.cos(φ1) * Math.cos(φ2) *
-                Math.sin(Δλ / 2) ** 2;
-
-      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-
-      return R * c;
-    }
+  // Si lien avec coordonnées, recentrer sur le véhicule
+  if (initialVehicule !== 'all' && initialLat && initialLng) {
+    document.getElementById('vehSelect').value = initialVehicule;
+    document.getElementById('vehSelect').dispatchEvent(new Event('change'));
   }
 </script>
 

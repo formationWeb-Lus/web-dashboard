@@ -1,0 +1,172 @@
+<%- include('../partials/header') %>
+
+<nav>
+  <ul class="nav">
+    <li><a href="/dashboard">📍 Position</a></li>
+    <li><a href="/history" class="active">📜 Historique</a></li>
+    <li><a href="/stop">⛔ Arrêt</a></li>
+    <li><a href="/map">🗺️ Carte</a></li>
+    <li><a href="/settings">⚙️ Paramètres</a></li>
+  </ul>
+</nav>
+
+<h2>📜 Historique des véhicules</h2>
+
+<div class="select-wrapper" style="text-align:center; margin-bottom:10px;">
+  <label for="vehSelect">Sélectionner un véhicule : </label>
+  <select id="vehSelect">
+    <option value="all" <%= selectedVehicule === 'all' ? 'selected' : '' %>>Tous les véhicules</option>
+    <% vehicules.forEach(v => { %>
+      <option value="<%= v %>" <%= selectedVehicule === v ? 'selected' : '' %>><%= v %></option>
+    <% }) %>
+  </select>
+</div>
+
+<div id="map" style="height: 600px; width: 100%; margin-bottom: 10px;"></div>
+
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCz_VhJ95x-dQl40Ok6cULkxX7K0C8O320"></script>
+
+<script>
+const vehicules = <%- JSON.stringify(vehicules) %>;
+const history = <%- JSON.stringify(history) %>;
+
+let map, markers = [], polylines = [];
+
+function initMap(selectedVehicule = 'all') {
+  markers.forEach(m => m.setMap(null));
+  polylines.forEach(l => l.setMap(null));
+  markers = [];
+  polylines = [];
+
+  const filteredVehs = selectedVehicule === 'all'
+    ? vehicules
+    : vehicules.filter(v => v === selectedVehicule);
+
+  const filteredPositions = history.filter(p =>
+    selectedVehicule === 'all' ? true : p.vehiculeid === selectedVehicule
+  ).sort((a,b) => new Date(a.timestamp) - new Date(b.timestamp));
+
+  if (!filteredPositions.length) {
+    document.getElementById('map').innerHTML = "<p>Aucune position disponible pour ce véhicule.</p>";
+    return;
+  }
+
+  // Centre la carte sur la première position
+  map = new google.maps.Map(document.getElementById('map'), {
+    center: { lat: parseFloat(filteredPositions[0].lat), lng: parseFloat(filteredPositions[0].lng) },
+    zoom: 13
+  });
+
+  filteredVehs.forEach(v => {
+    const vehPositions = filteredPositions.filter(p => p.vehiculeid === v);
+
+    if (!vehPositions.length) return;
+
+    let pathCoords = [];
+    let prevPos = null;
+
+    vehPositions.forEach((pos, i) => {
+      const currentTime = new Date(pos.timestamp);
+
+      if (prevPos) {
+        const prevTime = new Date(prevPos.timestamp);
+        const diff = (currentTime - prevTime)/1000/60; // minutes
+        const distance = getDistanceInMeters(prevPos.lat, prevPos.lng, pos.lat, pos.lng);
+
+        // Arrêt détecté
+        if (diff >= 7) {
+          // Marqueur arrêt
+          const stopMarker = new google.maps.Marker({
+            position: { lat: parseFloat(prevPos.lat), lng: parseFloat(prevPos.lng) },
+            map: map,
+            title: `⛔ Arrêt: ${prevTime.toLocaleString()}`,
+            icon: 'http://maps.google.com/mapfiles/ms/icons/red-dot.png'
+          });
+          const infoStop = new google.maps.InfoWindow({
+            content: `Arrêt: ${prevTime.toLocaleString()}<br>Distance depuis le départ: ${distance.toFixed(2)} m`
+          });
+          stopMarker.addListener('click', () => infoStop.open(map, stopMarker));
+          markers.push(stopMarker);
+
+          // Marqueur départ après arrêt
+          const resumeMarker = new google.maps.Marker({
+            position: { lat: parseFloat(pos.lat), lng: parseFloat(pos.lng) },
+            map: map,
+            title: `🚦 Départ: ${currentTime.toLocaleString()}`,
+            icon: 'http://maps.google.com/mapfiles/ms/icons/green-dot.png'
+          });
+          const infoResume = new google.maps.InfoWindow({
+            content: `Départ: ${currentTime.toLocaleString()}`
+          });
+          resumeMarker.addListener('click', () => infoResume.open(map, resumeMarker));
+          markers.push(resumeMarker);
+
+          pathCoords = []; // réinitialise le chemin
+        }
+      } else {
+        // Premier départ du véhicule
+        const startMarker = new google.maps.Marker({
+          position: { lat: parseFloat(pos.lat), lng: parseFloat(pos.lng) },
+          map: map,
+          title: `🚦 Début: ${currentTime.toLocaleString()}`,
+          icon: 'http://maps.google.com/mapfiles/ms/icons/green-dot.png'
+        });
+        const infoStart = new google.maps.InfoWindow({
+          content: `Début du parcours: ${currentTime.toLocaleString()}`
+        });
+        startMarker.addListener('click', () => infoStart.open(map, startMarker));
+        markers.push(startMarker);
+      }
+
+      pathCoords.push({ lat: parseFloat(pos.lat), lng: parseFloat(pos.lng) });
+      prevPos = pos;
+
+      // Si dernier point, ajoute un marqueur fin
+      if (i === vehPositions.length - 1) {
+        const endMarker = new google.maps.Marker({
+          position: { lat: parseFloat(pos.lat), lng: parseFloat(pos.lng) },
+          map: map,
+          title: `🏁 Fin: ${currentTime.toLocaleString()}`,
+          icon: 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png'
+        });
+        markers.push(endMarker);
+      }
+
+      // Trace la polyline du parcours
+      if (pathCoords.length > 1) {
+        const polyline = new google.maps.Polyline({
+          path: pathCoords,
+          geodesic: true,
+          strokeColor: '#FF0000',
+          strokeOpacity: 1.0,
+          strokeWeight: 2,
+          map: map
+        });
+        polylines.push(polyline);
+      }
+    });
+  });
+}
+
+// Événement de changement de véhicule
+document.getElementById('vehSelect').addEventListener('change', function() {
+  initMap(this.value);
+});
+
+// Initialisation avec le véhicule par défaut
+initMap('<%= selectedVehicule %>');
+
+// Fonction Haversine pour calculer la distance
+function getDistanceInMeters(lat1, lon1, lat2, lon2) {
+  const R = 6371e3;
+  const φ1 = lat1 * Math.PI / 180;
+  const φ2 = lat2 * Math.PI / 180;
+  const Δφ = (lat2 - lat1) * Math.PI / 180;
+  const Δλ = (lon2 - lon1) * Math.PI / 180;
+  const a = Math.sin(Δφ/2)**2 + Math.cos(φ1)*Math.cos(φ2)*Math.sin(Δλ/2)**2;
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  return R * c;
+}
+</script>
+
+<%- include('../partials/footer') %>

@@ -8,14 +8,19 @@
 <body>
   <div class="container">
     <h1>Connexion</h1>
-    <p>Entrez votre numéro de téléphone pour vous connecter.</p>
+    <p>Entrez votre numéro de téléphone et votre mot de passe pour vous connecter.</p>
 
     <% if (error) { %>
       <div class="error"><%= error %></div>
     <% } %>
 
     <form method="POST" action="/login">
+      <!-- Champ téléphone -->
       <input type="text" name="phone" placeholder="Téléphone" required minlength="8" />
+
+      <!-- Champ mot de passe -->
+      <input type="password" name="password" placeholder="Mot de passe" required minlength="6" />
+
       <button type="submit">Se connecter</button>
     </form>
 

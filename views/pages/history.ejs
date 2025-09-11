@@ -10,31 +10,47 @@
   </ul>
 </nav>
 
-<h2>📜 Historique des positions</h2>
+<h2>📜 Historique des véhicules</h2>
 
-<% if (positions.length > 0) { %>
+<div class="select-wrapper" style="text-align:center; margin-bottom:10px;">
+  <form method="GET" action="/history">
+    <label for="vehSelect">Sélectionner un véhicule : </label>
+    <select id="vehSelect" name="vehicule" onchange="this.form.submit()">
+      <option value="all" <%= selectedVehicule === 'all' ? 'selected' : '' %>>Tous les véhicules</option>
+      <% vehicules.forEach(v => { %>
+        <option value="<%= v %>" <%= selectedVehicule === v ? 'selected' : '' %>><%= v %></option>
+      <% }) %>
+    </select>
+  </form>
+</div>
+
+<% if (history.length > 0) { %>
   <table>
     <thead>
       <tr>
-        <th>Date</th>
+        <th>Véhicule</th>
+        <th>Type</th>
+        <th>Date & Heure</th>
         <th>Latitude</th>
         <th>Longitude</th>
-        <th>Vitesse</th>
+        <th>Distance (m)</th>
       </tr>
     </thead>
     <tbody>
-      <% positions.forEach(pos => { %>
+      <% history.forEach(entry => { %>
         <tr>
-          <td><%= new Date(pos.timestamp).toLocaleString() %></td>
-          <td><%= pos.latitude %></td>
-          <td><%= pos.longitude %></td>
-          <td><%= pos.speed || 0 %> km/h</td>
+          <td><%= entry.vehiculeid %></td>
+          <td><%= entry.type %></td>
+          <td><%= entry.timestamp.toLocaleString() %></td>
+          <td><%= entry.lat %></td>
+          <td><%= entry.lng %></td>
+          <td><%= entry.distance || '-' %></td>
         </tr>
       <% }) %>
     </tbody>
   </table>
 <% } else { %>
-  <p>Aucune position enregistrée.</p>
+  <p>Aucun historique disponible pour le véhicule sélectionné.</p>
 <% } %>
 
 <%- include('../partials/footer') %>

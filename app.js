@@ -1,52 +1,69 @@
-require('dotenv').config(); // Pour charger les variables d'environnement
-
 const express = require('express');
 const session = require('express-session');
-const bodyParser = require('body-parser');
 const path = require('path');
+const pool = require('./db');
 
-const registerRoutes = require('./routes/register');
 const loginRoutes = require('./routes/login');
 const dashboardRoutes = require('./routes/dashboard');
-const pool = require('./db');
+const historyRoutes = require('./routes/history');
+const stopsRoutes = require('./routes/stop'); 
+const settingsRoutes = require('./routes/settings');
 
 const app = express();
 
-// === MIDDLEWARE ===
+// ----------------------
+// Middleware
+// ----------------------
 app.use(express.static('public'));
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(session({
-  secret: process.env.SESSION_SECRET || 'dev-secret-1234567890', // 🔐 Change en prod
+  secret: process.env.SESSION_SECRET || 'dev-secret-123456',
   resave: false,
   saveUninitialized: true
 }));
 
-// === MOTEUR EJS ===
+// ----------------------
+// EJS
+// ----------------------
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
-// === CONNEXION DB ===
-pool.connect()
-  .then(() => console.log('✅ Connexion PostgreSQL réussie depuis web-dashboard'))
-  .catch(err => console.error('❌ Échec connexion PostgreSQL :', err));
-
-// === ROUTES ===
+// ----------------------
+// Routes
+// ----------------------
+app.use('/stops', stopsRoutes);
 app.use('/', loginRoutes);
-app.use('/', registerRoutes);
 app.use('/', dashboardRoutes);
+app.use('/', historyRoutes);
+app.use('/', settingsRoutes);
 
-// === PAGE D'ACCUEIL ===
-app.get('/', (req, res) => {
-  if (req.session.user) {
-    res.redirect('/dashboard');
-  } else {
-    res.redirect('/login');
+// ----------------------
+// Route Map
+// ----------------------
+app.get('/map', async (req, res) => {
+  try {
+    const vehicules = (await pool.query('SELECT * FROM vehicules')).rows;
+    const positions = (await pool.query('SELECT * FROM positions ORDER BY timestamp DESC')).rows;
+
+    const { lat, lng, vehicule } = req.query; // paramètres du lien
+
+    res.render('map', { vehicules, positions, lat, lng, vehicule });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Erreur serveur');
   }
 });
 
-// === DÉMARRAGE DU SERVEUR ===
-const PORT = process.env.PORT || 4000;
-app.listen(PORT, () => {
-  console.log(`✅ Serveur lancé sur http://localhost:${PORT}`);
-});
+// ----------------------
+// Redirection racine
+app.get('/', (req, res) => res.redirect('/login'));
+
+// ----------------------
+// Connexion DB
+pool.connect()
+  .then(() => console.log('✅ Connexion PostgreSQL réussie'))
+  .catch(err => console.error('❌ Erreur PostgreSQL :', err.message));
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`🚀 Serveur lancé sur http://localhost:${PORT}`));

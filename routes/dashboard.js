@@ -1,103 +1,55 @@
-const express = require('express');
+const express = require('express'); 
 const router = express.Router();
-const axios = require('axios');
-require('dotenv').config();
+const pool = require('../db');
+const verifyToken = require('../auth/verifyToken');
 
-// Middleware de sécurité
-function requireLogin(req, res, next) {
-  if (!req.session.user) return res.redirect('/login');
-  next();
-}
-
-// Route /dashboard
-router.get('/dashboard', requireLogin, async (req, res) => {
+router.get('/dashboard', verifyToken, async (req, res) => {
   try {
-    const user = req.session.user;
+    const user = req.user; // récupéré depuis verifyToken (doit contenir user.userid)
+
+    // Tous les véhicules de l'utilisateur
+    const vehiculesRes = await pool.query(
+      'SELECT vehiculeid, vehicule_name, plate_number FROM vehicules WHERE userid = $1',
+      [user.userid]
+    );
+    const allVehicules = vehiculesRes.rows;
+
+    // Véhicule sélectionné depuis le menu déroulant (query string ?v=xxx)
     const selectedVehicule = req.query.v || 'all';
 
-    console.log('✅ Utilisateur connecté :', user);
-
-    // 🔑 Récupération du token stocké dans la session (si tu le mets dans la session)
-    const token = user.token; 
-
-    // 🔄 Requête vers ton backend pour obtenir TOUS les véhicules de l’utilisateur
-    const response = await axios.get(
-      'https://gps-device-server.onrender.com/api/vehicules',
-      {
-        headers: { Authorization: `Bearer ${token}` }
-      }
-    );
-
-    let vehicules = response.data; // liste des véhicules + last_position
-
-    console.log('🚗 Véhicules reçus :', vehicules.length);
-
-    // 🎯 Filtrer si un véhicule est sélectionné
-    if (selectedVehicule.toLowerCase() !== 'all') {
-      vehicules = vehicules.filter(
-        v => v.id.toString() === selectedVehicule.toString()
-      );
+    // Filtrer les véhicules si un véhicule spécifique est sélectionné
+    let vehicules = allVehicules;
+    if (selectedVehicule !== 'all') {
+      vehicules = allVehicules.filter(v => v.vehiculeid == selectedVehicule);
     }
 
-    // 🌍 Géocodage enrichi des dernières positions
-    const enrichedVehicules = await Promise.all(
-      vehicules.map(async (v) => {
-        if (!v.last_position) return v;
+    // Récupérer les 5 dernières positions pour les véhicules filtrés
+    const positions = [];
+    for (const v of vehicules) {
+      const posRes = await pool.query(
+        'SELECT * FROM positions WHERE vehiculeid = $1 ORDER BY timestamp DESC LIMIT 5',
+        [v.vehiculeid]
+      );
+      positions.push(...posRes.rows);
+    }
 
-        try {
-          const geoRes = await axios.get('https://maps.googleapis.com/maps/api/geocode/json', {
-            params: {
-              key: process.env.GOOGLE_MAPS_API_KEY,
-              latlng: `${v.last_position.latitude},${v.last_position.longitude}`,
-              language: 'fr'
-            }
-          });
-
-          const result = geoRes.data.results[0];
-          const comps = result?.address_components || [];
-          const adresse = result?.formatted_address || "Adresse inconnue";
-
-          // fonction utilitaire
-          function getComponent(type) {
-            const c = comps.find(comp => comp.types.includes(type));
-            return c ? c.long_name : '';
-          }
-
-          v.last_position = {
-            ...v.last_position,
-            adresse,
-            quartier: getComponent("sublocality") || getComponent("neighborhood"),
-            ville: getComponent("locality"),
-            territoire: getComponent("administrative_area_level_2"),
-            province: getComponent("administrative_area_level_1"),
-            pays: getComponent("country"),
-            code_postal: getComponent("postal_code")
-          };
-
-          return v;
-        } catch (geoErr) {
-          console.error("❌ Erreur géocodage :", geoErr.message);
-          v.last_position.adresse = "Erreur géocodage";
-          return v;
-        }
-      })
-    );
-
-    // 🖥️ Rendu de la vue
+    // Rendu vers la vue
     res.render('pages/dashboard', {
       user,
-      vehicules: enrichedVehicules,
+      vehicules: allVehicules, // pour le menu déroulant
       selectedVehicule,
-      error: null
+      positions,
+      error: positions.length === 0 ? 'Aucune position trouvée.' : null
     });
 
   } catch (err) {
-    console.error('❌ Erreur dashboard :', err.message);
+    console.error('❌ Erreur dashboard:', err.message);
     res.render('pages/dashboard', {
-      user: req.session.user,
+      user: req.user,
       vehicules: [],
       selectedVehicule: null,
-      error: "Erreur de chargement des données. Veuillez réessayer plus tard."
+      positions: [],
+      error: 'Erreur de chargement des données.'
     });
   }
 });

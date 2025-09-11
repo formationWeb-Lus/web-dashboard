@@ -4,28 +4,82 @@
   <ul class="nav">
     <li><a href="/dashboard">📍 Position</a></li>
     <li><a href="/history">📜 Historique</a></li>
-    <li><a href="/stop" class="active">⛔ Arrêt</a></li>
+    <li><a href="/stops" class="active">⛔ Arrêt</a></li>
     <li><a href="/map">🗺️ Carte</a></li>
     <li><a href="/settings">⚙️ Paramètres</a></li>
   </ul>
 </nav>
 
-<h2>⛔ Points d'arrêt détectés</h2>
+<h2>⛔ Arrêts du véhicule</h2>
 
-<p>Fonction à implémenter pour détecter les arrêts du véhicule en fonction des données GPS (position identique plusieurs fois, ou vitesse = 0).</p>
-
-<ul>
-  <% if (stops && stops.length > 0) { %>
-    <% stops.forEach(stop => { %>
-      <li>
-        <strong>Lieu :</strong> <%= stop.latitude %>, <%= stop.longitude %><br/>
-        <strong>Début :</strong> <%= stop.start %><br/>
-        <strong>Fin :</strong> <%= stop.end %>
-      </li>
+<div class="select-wrapper" style="text-align:center; margin-bottom:10px;">
+  <label for="vehSelect">Sélectionner un véhicule : </label>
+  <select id="vehSelect">
+    <option value="">-- Choisissez un véhicule --</option>
+    <% vehicules.forEach(v => { %>
+      <option value="<%= v.vehiculeid %>"><%= v.vehiculeid %></option>
     <% }) %>
-  <% } else { %>
-    <p>Aucun arrêt détecté.</p>
-  <% } %>
-</ul>
+  </select>
+</div>
+
+<table border="1" style="width:100%; text-align:center;">
+  <thead>
+    <tr>
+      <th>Quartier</th>
+      <th>Rue</th>
+      <th>Numéro</th>
+      <th>Heure de début</th>
+      <th>Heure de fin</th>
+      <th>Durée (min)</th>
+    </tr>
+  </thead>
+  <tbody id="stopTableBody">
+    <tr>
+      <td colspan="6">Sélectionnez un véhicule pour voir ses arrêts</td>
+    </tr>
+  </tbody>
+</table>
+
+<script>
+  const vehSelect = document.getElementById('vehSelect');
+  const stopTableBody = document.getElementById('stopTableBody');
+
+  vehSelect.addEventListener('change', async function() {
+    const vehiculeId = this.value;
+
+    if (!vehiculeId) {
+      stopTableBody.innerHTML = `<tr><td colspan="6">Veuillez sélectionner un véhicule spécifique.</td></tr>`;
+      return;
+    }
+
+    try {
+      // ✅ corrige l’URL : /stops/:vehiculeId
+      const res = await fetch(`/stops/${vehiculeId}`);
+      const data = await res.json();
+
+      if (!data.stops || data.stops.length === 0) {
+        stopTableBody.innerHTML = `<tr><td colspan="6">Aucun arrêt enregistré pour ce véhicule aujourd'hui.</td></tr>`;
+        return;
+      }
+
+      stopTableBody.innerHTML = '';
+      data.stops.forEach(s => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${s.quartier || '-'}</td>
+          <td>${s.rue || '-'}</td>
+          <td>${s.numero || '-'}</td>
+          <td>${new Date(s.start).toLocaleTimeString()}</td>
+          <td>${new Date(s.end).toLocaleTimeString()}</td>
+          <td>${s.duration}</td>
+        `;
+        stopTableBody.appendChild(row);
+      });
+    } catch (err) {
+      console.error('Erreur fetch stops:', err);
+      stopTableBody.innerHTML = `<tr><td colspan="6">Erreur lors du chargement des arrêts.</td></tr>`;
+    }
+  });
+</script>
 
 <%- include('../partials/footer') %>

@@ -1,93 +1,58 @@
 const express = require('express');
 const router = express.Router();
-const axios = require('axios');
-const pool = require('../db'); // ta connexion PostgreSQL
+const pool = require('../db'); // connexion PostgreSQL
+const jwt = require('jsonwebtoken');
 
-// === Affichage du formulaire de login ===
+// ----------------------
+// GET /login → Affiche le formulaire
+// ----------------------
 router.get('/login', (req, res) => {
   res.render('pages/login', { error: null });
 });
 
-// === Soumission du formulaire login ===
+// ----------------------
+// POST /login → Vérifie les infos et renvoie un JWT
+// ----------------------
 router.post('/login', async (req, res) => {
-  const { phone } = req.body;
+  const { phone, password } = req.body;
 
   try {
-    // 1) Récupérer l'utilisateur selon son téléphone
-    const userResult = await pool.query(`
-      SELECT id, name, firstname, phone
-      FROM users
-      WHERE phone = $1
-    `, [phone]);
-
-    if (userResult.rows.length === 0) {
-      return res.render('pages/login', {
-        error: "Ce numéro n'est pas enregistré."
-      });
-    }
-    const user = userResult.rows[0];
-
-    // 2) Récupérer toutes les positions de tous les véhicules de cet utilisateur
-    const positionsResult = await pool.query(`
-      SELECT 
-        p.id,
-        p.vehiculeid,
-        p.userid,
-        p.latitude,
-        p.longitude,
-        p.vitesse,
-        p.timestamp,
-        p.quartier,
-        p.rue,
-        p.ville,
-        p.comte,
-        p.region,
-        p.code_postal,
-        p.pays
-      FROM positions p
-      JOIN vehicules v ON p.vehiculeid = v.vehiculeid
-      WHERE v.user_id = $1
-      ORDER BY p.timestamp DESC
-    `, [user.id]);
-
-    if (positionsResult.rows.length === 0) {
-      return res.render('pages/login', {
-        error: "Aucune position trouvée pour les véhicules associés."
-      });
-    }
-
-    // Extraire la liste des véhicules (sans doublons)
-    const vehicules = [...new Set(positionsResult.rows.map(pos => pos.vehiculeid))];
-    const vehiculeId = vehicules[0]; // pour obtenir le token API
-
-    // 3) Appeler l'API distante pour obtenir le token
-    const apiResponse = await axios.post(
-      'https://gps-device-server.onrender.com/api/vehicules-token',
-      { vehiculeId }
+    // Chercher l'utilisateur par téléphone
+    const result = await pool.query(
+      `SELECT userid, name, phone, password, vehicule_name FROM users WHERE phone = $1`,
+      [phone]
     );
-    const token = apiResponse.data.token;
 
-    // 4) Stocker les infos en session
+    if (result.rows.length === 0) {
+      return res.render('pages/login', { error: "Numéro non enregistré" });
+    }
+
+    const user = result.rows[0];
+
+    // Vérification mot de passe (⚠️ en vrai il faut hasher avec bcrypt)
+    if (user.password !== password) {
+      return res.render('pages/login', { error: "Mot de passe incorrect" });
+    }
+
+    // Générer un token JWT
+    const token = jwt.sign(
+      { userid: user.userid, name: user.name, phone: user.phone, vehiculeid: user.vehiculeid },
+      process.env.JWT_SECRET || "dev-secret",
+      { expiresIn: '1h' }
+    );
+
+    // Stocker éventuellement en session si besoin (optionnel)
     req.session.user = user;
-    req.session.vehicules = vehicules;
-    req.session.positions = positionsResult.rows;
     req.session.token = token;
 
     console.log("✅ Utilisateur connecté :", user);
-    console.log("🚗 Véhicules associés :", vehicules);
-    console.log("📍 Positions récupérées :", positionsResult.rows.length);
-    console.log("🔐 Token API reçu :", token);
 
-    return res.redirect('/dashboard');
+    // Redirection vers dashboard
+    res.redirect('/dashboard'); // si dashboard nécessite JWT, tu peux l’envoyer via session ou cookie
 
   } catch (err) {
-    console.error('❌ Erreur lors de la connexion :', err.message);
-    if (err.response) {
-      console.error('📡 Erreur API distante :', err.response.status, err.response.data);
-    }
-    return res.render('pages/login', {
-      error: "Impossible de se connecter. Vérifiez votre numéro ou réessayez plus tard."
-    });
+    console.error("❌ Erreur login:", err.message);
+    res.render('pages/login', { error: "Erreur serveur, réessayez" });
   }
 });
 

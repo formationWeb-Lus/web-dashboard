@@ -1,133 +1,88 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Dashboard | Web GPS</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f4f4f4;
-      margin: 0;
-      padding: 20px;
-    }
+<%- include('../partials/header') %>
 
-    h1, h2 {
-      text-align: center;
-    }
+<nav>
+  <ul class="nav">
+    <li><a href="/dashboard" class="active">📍 Position</a></li>
+    <li><a href="/history">📜 Historique</a></li>
+    <li><a href="/stop">⛔ Arrêt</a></li>
+    <li><a href="/settings">⚙️ Paramètres</a></li>
+  </ul>
+</nav>
 
-    .select-wrapper {
-      text-align: center;
-      margin: 20px 0;
-    }
+<h2>📍 Dernières positions des véhicules</h2>
 
-    select {
-      padding: 10px;
-      font-size: 16px;
-    }
+<!-- Sélecteur de véhicules -->
+<div class="select-wrapper" style="text-align:center; margin-bottom:20px;">
+  <form method="GET" action="/dashboard">
+    <label for="vehSelect">Sélectionner un véhicule : </label>
+    <select id="vehSelect" name="v" onchange="this.form.submit()">
+      <option value="all" <%= selectedVehicule === 'all' ? 'selected' : '' %>>Tous les véhicules</option>
+      <% vehicules.forEach(v => { %>
+        <option value="<%= v.vehiculeid %>" <%= selectedVehicule == v.vehiculeid ? 'selected' : '' %>>
+          <%= v.vehiculeid %>
+        </option>
+      <% }) %>
+    </select>
+  </form>
+</div>
 
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      background: #fff;
-    }
-
-    th, td {
-      border: 1px solid #ddd;
-      padding: 10px;
-      text-align: center;
-      font-size: 14px;
-    }
-
-    th {
-      background-color: #f0f0f0;
-    }
-
-    .status {
-      text-align: center;
-      margin-top: 20px;
-      font-style: italic;
-      color: #666;
-    }
-
-    .error {
-      color: red;
-    }
-  </style>
-</head>
-<body>
-
-  <h1>Bienvenue <%= user?.firstname || '' %> <%= user?.name || '' %></h1>
-
-  <h2>🟡 Positions de 
-    <%= selectedVehicule && selectedVehicule !== 'all' 
-      ? selectedVehicule 
-      : 'tous les véhicules' %>
-  </h2>
-
-  <div class="select-wrapper">
-    <form method="get" action="/dashboard">
-      <label for="v">Véhicules :</label>
-      <select name="v" id="v" onchange="this.form.submit()">
-        <option value="all" <%= selectedVehicule === 'all' ? 'selected' : '' %>>Tous les véhicules</option>
-        <% if (vehicules && vehicules.length > 0) { %>
-          <% vehicules.forEach(v => { %>
-            <option value="<%= v.id %>" <%= selectedVehicule == v.id ? 'selected' : '' %>>
-              <%= v.nom || ('Véhicule ' + v.id) %>
-            </option>
-          <% }) %>
-        <% } else { %>
-          <option disabled>Aucun véhicule trouvé</option>
-        <% } %>
-      </select>
-    </form>
-  </div>
-
-  <% if (error) { %>
-    <p class="status error"><%= error %></p>
-  <% } else if (!vehicules || vehicules.length === 0) { %>
-    <p class="status">Aucun véhicule trouvé.</p>
-  <% } else { %>
-    <table>
-      <thead>
+<!-- Tableau des positions -->
+<% if (positions.length > 0) { %>
+  <table class="positions-table">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Véhicule</th>
+        <th>Quartier</th>
+        <th>Rue</th>
+        <th>Ville</th>
+        <th>Pays</th>
+        <th>Latitude</th>
+        <th>Longitude</th>
+        <th>Vitesse (km/h)</th>
+        <th>Date_Heure</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% positions.forEach((pos, index) => { %>
         <tr>
-          <th>#</th>
-          <th>Véhicule</th>
-          <th>Latitude</th>
-          <th>Longitude</th>
-          <th>Vitesse (km/h)</th>
-          <th>Heure</th>
-          <th>Adresse</th>
-          <th>Quartier</th>
-          <th>Ville</th>
-          <th>Territoire</th>
-          <th>Province</th>
-          <th>Pays</th>
+          <td><%= index + 1 %></td>
+          <td><%= pos.vehiculeid %></td>
+          <td><%= pos.quartier || '-' %></td>
+          <td><%= pos.rue || '-' %></td>
+          <td><%= pos.ville || '-' %></td>
+          <td><%= pos.pays || '-' %></td>
+          <td><%= pos.latitude %></td>
+          <td><%= pos.longitude %></td>
+          <td><%= pos.speed || 0 %></td>
+          <td><%= new Date(pos.timestamp).toLocaleString() %></td>
         </tr>
-      </thead>
-      <tbody>
-        <% vehicules.forEach((v, index) => { 
-             const pos = v.last_position; 
-             if (!pos) return; 
-        %>
-          <tr>
-            <td><%= index + 1 %></td>
-            <td><%= v.nom || ('Véhicule ' + v.id) %></td>
-            <td><%= pos.latitude || '-' %></td>
-            <td><%= pos.longitude || '-' %></td>
-            <td><%= pos.vitesse || 0 %></td>
-            <td><%= new Date(pos.createdat).toLocaleString('fr-FR') %></td>
-            <td><%= pos.adresse || 'N/A' %></td>
-            <td><%= pos.quartier || '-' %></td>
-            <td><%= pos.ville || '-' %></td>
-            <td><%= pos.territoire || '-' %></td>
-            <td><%= pos.province || '-' %></td>
-            <td><%= pos.pays || '-' %></td>
-          </tr>
-        <% }) %>
-      </tbody>
-    </table>
-  <% } %>
+      <% }) %>
+    </tbody>
+  </table>
+<% } else { %>
+  <p style="text-align:center;">Aucune position enregistrée pour le véhicule sélectionné.</p>
+<% } %>
 
-</body>
-</html>
+<!-- Carte Google Maps -->
+<h2 style="margin-top:30px;">🗺️ Carte des véhicules</h2>
+<div id="map" style="height: 500px; width: 100%; margin-bottom: 10px;"></div>
+<p id="distanceInfo" style="text-align:center;">📏 En attente de la localisation...</p>
+<button onclick="locateMe()">📍 Me localiser</button>
+
+<!-- Google Maps API -->
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCz_VhJ95x-dQl40Ok6cULkxX7K0C8O320"></script>
+
+<!-- Ton script map.js -->
+<script type="module">
+  import { initVehicleMap } from '/js/map.js';
+
+  // Passer directement les positions et véhicules déjà récupérés dans le tableau de bord
+  const vehicules = <%- JSON.stringify(vehicules) %>;
+  const positions = <%- JSON.stringify(positions) %>;
+
+  // Initialisation de la carte
+  initVehicleMap(vehicules, positions, 'map', 'distanceInfo', 'vehSelect');
+</script>
+
+<%- include('../partials/footer') %>

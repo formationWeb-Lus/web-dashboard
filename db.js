@@ -7,8 +7,9 @@ const pool = new Pool({
   ssl: { rejectUnauthorized: false }
 });
 
-pool.connect()
-  .then(() => console.log('✅ Connexion PostgreSQL réussie depuis web-dashboard'))
+// ✅ Test de connexion une seule fois
+pool.query("SELECT NOW()")
+  .then(() => console.log('✅ Connexion PostgreSQL OK depuis web-dashboard'))
   .catch((err) => console.error('❌ Connexion PostgreSQL échouée :', err.message));
 
 module.exports = pool;

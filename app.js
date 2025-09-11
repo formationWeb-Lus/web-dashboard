@@ -1,7 +1,7 @@
 const express = require('express');
 const session = require('express-session');
 const path = require('path');
-const pool = require('./db');
+const pool = require('./db'); // Pool déjà prêt
 
 const loginRoutes = require('./routes/login');
 const dashboardRoutes = require('./routes/dashboard');
@@ -50,20 +50,18 @@ app.get('/map', async (req, res) => {
 
     res.render('map', { vehicules, positions, lat, lng, vehicule });
   } catch (err) {
-    console.error(err);
+    console.error("❌ Erreur /map :", err.message);
     res.status(500).send('Erreur serveur');
   }
 });
 
 // ----------------------
 // Redirection racine
+// ----------------------
 app.get('/', (req, res) => res.redirect('/login'));
 
 // ----------------------
-// Connexion DB
-pool.connect()
-  .then(() => console.log('✅ Connexion PostgreSQL réussie'))
-  .catch(err => console.error('❌ Erreur PostgreSQL :', err.message));
-
+// Lancement serveur
+// ----------------------
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`🚀 Serveur lancé sur http://localhost:${PORT}`));
+app.listen(PORT, () => console.log(`🚀 Serveur lancé sur port ${PORT}`));

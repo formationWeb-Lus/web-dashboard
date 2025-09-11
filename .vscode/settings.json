@@ -1,0 +1,17 @@
+{
+    "sqltools.connections": [
+        {
+            "pgOptions": {
+                "ssl": {
+                    "rejectUnauthorized": true
+                }
+            },
+            "ssh": "Disabled",
+            "previewLimit": 50,
+            "server": "localhost",
+            "driver": "PostgreSQL",
+            "name": "congogps",
+            "connectString": "postgresql://congogps:TASfpdKgDO3r0N7ukmGr12ScZKY6Hqk5@dpg-d2oqi6er433s73b97l7g-a.oregon-postgres.render.com/congogps"
+        }
+    ]
+}

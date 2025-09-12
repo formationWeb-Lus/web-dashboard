@@ -5,6 +5,7 @@ body {
   padding: 0;
 }
 
+/* Conteneur principal */
 .container {
   max-width: 500px;
   margin: 80px auto;
@@ -30,6 +31,7 @@ button {
   width: 100%;
   border-radius: 5px;
   cursor: pointer;
+  transition: background 0.3s ease;
 }
 
 button:hover {
@@ -47,4 +49,56 @@ button:hover {
   margin-bottom: 15px;
   font-weight: bold;
   text-align: center;
+}
+
+/* ------------------ */
+/* 📱 Mobile (petits écrans < 600px) */
+@media (max-width: 600px) {
+  .container {
+    margin: 30px 15px;
+    padding: 20px;
+    max-width: 100%;
+  }
+
+  button {
+    padding: 14px;
+    font-size: 16px;
+  }
+
+  input, select {
+    font-size: 16px;
+  }
+}
+
+/* 📱📲 Tablettes (600px – 1024px) */
+@media (min-width: 600px) and (max-width: 1024px) {
+  .container {
+    max-width: 700px;
+    margin: 60px auto;
+    padding: 25px;
+  }
+
+  button {
+    font-size: 17px;
+  }
+
+  input, select {
+    font-size: 15px;
+  }
+}
+
+/* 🖥️ Grands écrans (1024px et plus) */
+@media (min-width: 1024px) {
+  .container {
+    max-width: 900px;
+    padding: 40px;
+  }
+
+  button {
+    font-size: 18px;
+  }
+
+  input, select {
+    font-size: 16px;
+  }
 }

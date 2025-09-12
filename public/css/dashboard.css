@@ -1,44 +1,47 @@
 /* ============================= */
-/* 🌍 Style global */
+/* 🌍 Header fixe en haut */
 /* ============================= */
-body {
-  font-family: Arial, sans-serif;
-  margin: 0;
-  padding: 0;
-  background: #f9f9f9;
-}
-
-/* ============================= */
-/* 📌 Bouton menu (mobile) */
-/* ============================= */
-.menu-toggle {
-  display: none;
-  font-size: 24px;
-  background: red;
+.dashboard-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  background: #111; /* noir professionnel */
   color: white;
-  border: none;
-  border-radius: 50%;
-  width: 45px;
-  height: 45px;
-  cursor: pointer;
-  position: absolute;
-  top: 15px;
-  right: 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 20px;
   z-index: 1000;
   box-shadow: 0 4px 10px rgba(0,0,0,0.3);
 }
 
+/* Logo */
+.dashboard-header .logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.dashboard-header .logo img {
+  height: 40px;
+}
+
+.dashboard-header .logo span {
+  font-size: 20px;
+  font-weight: bold;
+  color: white;
+}
+
 /* ============================= */
-/* 📌 Navigation */
+/* 📌 Menu navigation */
 /* ============================= */
 .nav {
   display: flex;
-  justify-content: center;
-  gap: 20px;
-  background: #f4f4f4;
-  padding: 15px;
-  margin-top: 60px; /* espace sous le bouton menu */
+  gap: 25px;
   list-style: none;
+  margin: 0;
+  padding: 0;
 }
 
 .nav li {
@@ -47,10 +50,9 @@ body {
 
 .nav a {
   text-decoration: none;
-  font-size: 18px;
-  color: #333;
-  font-weight: bold;
-  transition: color 0.3s ease;
+  font-size: 16px;
+  color: #ddd;
+  transition: color 0.3s;
 }
 
 .nav a:hover,
@@ -59,12 +61,32 @@ body {
 }
 
 /* ============================= */
-/* 📌 Titres et sections */
+/* 📌 Bouton menu (mobile) */
 /* ============================= */
-h2 {
-  margin: 20px auto;
+.menu-toggle {
+  display: none;
+  font-size: 26px;
+  background: red;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 45px;
+  height: 45px;
+  cursor: pointer;
+  z-index: 1001;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.4);
+}
+
+/* ============================= */
+/* 📌 Titres de section */
+/* ============================= */
+.section-title {
+  margin-top: 90px; /* espace sous le header fixe */
+  padding: 15px;
   text-align: center;
-  color: #222;
+  font-size: 20px;
+  border-bottom: 2px solid #ddd;
+  background: #f9f9f9;
 }
 
 /* ============================= */
@@ -83,7 +105,7 @@ select {
 }
 
 /* ============================= */
-/* 📌 Tableau */
+/* 📌 Tableau des positions */
 /* ============================= */
 .positions-table {
   width: 95%;
@@ -134,11 +156,14 @@ button:hover {
 }
 
 /* ============================= */
-/* 📱 Responsive (Mobile <768px) */
+/* 📱 Responsive Mobile (<768px) */
 /* ============================= */
 @media (max-width: 767px) {
   .menu-toggle {
     display: block; /* bouton visible */
+    position: absolute;
+    top: 15px;
+    right: 15px;
   }
 
   .nav {
@@ -149,7 +174,7 @@ button:hover {
     top: 60px;
     left: 0;
     width: 100%;
-    background: white;
+    background: #111;
     padding: 20px;
     box-shadow: 0 4px 6px rgba(0,0,0,0.2);
     z-index: 999;
@@ -159,31 +184,39 @@ button:hover {
     display: flex; /* menu visible quand ouvert */
   }
 
+  .nav a {
+    color: white;
+    font-size: 18px;
+    padding: 10px 0;
+  }
+
   .positions-table,
   #map {
     width: 100%;
     font-size: 12px;
   }
 
-  h2 {
+  h2.section-title {
     font-size: 18px;
+  }
+
+  select {
+    font-size: 16px;
+    padding: 12px;
   }
 }
 
 /* ============================= */
-/* 💻 Responsive (PC >1024px) */
+/* 💻 Responsive PC (>1024px) */
 /* ============================= */
 @media (min-width: 1024px) {
   .positions-table th,
   .positions-table td {
     font-size: 16px;
+    padding: 12px;
   }
 
-  h2 {
-    font-size: 22px;
-  }
-
-  select {
-    font-size: 18px;
+  h2.section-title {
+    font-size: 24px;
   }
 }

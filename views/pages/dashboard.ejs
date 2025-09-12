@@ -1,19 +1,26 @@
 <%- include('../partials/header') %>
 
-<!-- Bouton menu pour mobile -->
-<button id="menuToggle" class="menu-toggle">☰</button>
+<header class="header">
+  <!-- Bouton menu pour mobile -->
+  <button id="menuToggle" class="menu-toggle">☰</button>
 
-<nav>
-  <ul class="nav">
-    <li><a href="/dashboard" class="active">📍 Position</a></li>
-    <li><a href="/history">📜 Historique</a></li>
-    <li><a href="/stop">⛔ Arrêt</a></li>
-    <li><a href="/settings">⚙️ Paramètres</a></li>
-  </ul>
-</nav>
+  <!-- Logo principal -->
+  <div class="logo">
+    <img src="/images/logo.png" alt="Logo GPS RDC">
+    <span>GPS RDC</span>
+  </div>
 
+  <nav>
+    <ul class="nav">
+      <li><a href="/dashboard" class="active">📍 Position</a></li>
+      <li><a href="/history">📜 Historique</a></li>
+      <li><a href="/stop">⛔ Arrêt</a></li>
+      <li><a href="/settings">⚙️ Paramètres</a></li>
+    </ul>
+  </nav>
+</header>
 
-<h2>📍 Dernières positions des véhicules</h2>
+<h2 class="section-title">📍 Dernières positions des véhicules</h2>
 
 <!-- Sélecteur de véhicules -->
 <div class="select-wrapper" style="text-align:center; margin-bottom:20px;">
@@ -30,7 +37,6 @@
   </form>
 </div>
 
-<!-- Tableau des positions -->
 <% if (positions.length > 0) { %>
   <table class="positions-table">
     <thead>
@@ -77,15 +83,12 @@
 <!-- Google Maps API -->
 <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCz_VhJ95x-dQl40Ok6cULkxX7K0C8O320"></script>
 
-<!-- Ton script map.js -->
 <script type="module">
   import { initVehicleMap } from '/js/map.js';
 
-  // Passer directement les positions et véhicules déjà récupérés dans le tableau de bord
   const vehicules = <%- JSON.stringify(vehicules) %>;
   const positions = <%- JSON.stringify(positions) %>;
 
-  // Initialisation de la carte
   initVehicleMap(vehicules, positions, 'map', 'distanceInfo', 'vehSelect');
 </script>
 

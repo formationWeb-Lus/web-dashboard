@@ -1,108 +1,155 @@
-/* ----- BASE ----- */
+/* ======================== */
+/* Global / Base styles */
+/* ======================== */
 body {
   font-family: Arial, sans-serif;
+  background: #f9f9f9;
   margin: 0;
-  padding: 10px;
-  background-color: #f0f2f5;
-  color: #333;
+  padding: 0;
+  font-size: 18px;
 }
 
-h1 {
-  font-size: 20px;
-  background-color: #9e075f;
-  color: white;
-  padding: 15px;
-  border-radius: 5px;
+h2 {
   text-align: center;
   margin-bottom: 20px;
 }
 
-/* ----- MENU NAVIGATION ----- */
-.nav-links {
+/* ------------------------ */
+/* Navbar / menu */
+/* ------------------------ */
+.nav {
   display: flex;
-  flex-wrap: wrap;
   justify-content: center;
-  padding: 10px;
-  margin: 0;
-  background-color: #fff;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  gap: 10px;
+  flex-wrap: wrap;
   list-style: none;
+  padding: 0;
+  margin: 10px 0 30px 0;
+  gap: 10px;
 }
 
-.nav-links li {
-  margin: 0;
-}
-
-.nav-links li a {
+.nav li a {
   display: block;
-  padding: 10px 14px;
-  background-color: #9e075f;
-  color: white;
+  padding: 12px 20px;
   text-decoration: none;
+  color: white;
+  background-color: red;
   border-radius: 5px;
-  font-weight: bold;
+  font-size: 16px;
   text-align: center;
-  transition: background-color 0.3s ease;
+  transition: background 0.3s ease;
 }
 
-.nav-links li a:hover {
-  background-color: #c2185b;
+.nav li a.active,
+.nav li a:hover {
+  background-color: darkred;
 }
 
-/* ----- ERREUR ----- */
-.error {
-  color: red;
-  text-align: center;
-  font-weight: bold;
-  margin: 10px 0;
+/* ------------------------ */
+/* Sélecteur de véhicules */
+/* ------------------------ */
+.select-wrapper {
+  width: 90%;
+  max-width: 400px;
+  margin: 0 auto 20px auto;
 }
 
-/* ----- TABLE RESPONSIVE ----- */
-.table-wrapper {
-  overflow-x: auto;
-  max-width: 100%;
-}
-
-table {
+select {
   width: 100%;
-  min-width: 800px;
+  padding: 12px;
+  font-size: 16px;
+  border-radius: 5px;
+}
+
+/* ------------------------ */
+/* Tableau des positions */
+/* ------------------------ */
+.positions-table {
+  width: 95%;
+  margin: 0 auto 20px auto;
   border-collapse: collapse;
-  margin-top: 20px;
-  background-color: white;
   font-size: 14px;
 }
 
-table th,
-table td {
+.positions-table th, 
+.positions-table td {
   border: 1px solid #ccc;
   padding: 8px;
-  text-align: left;
+  text-align: center;
 }
 
-thead {
+.positions-table th {
   background-color: #f2f2f2;
 }
 
-/* ----- PETITS ÉCRANS ----- */
-@media (max-width: 600px) {
-  h1 {
-    font-size: 18px;
-    padding: 10px;
-  }
+/* ------------------------ */
+/* Carte Google Maps */
+/* ------------------------ */
+#map {
+  width: 95%;
+  max-width: 1000px;
+  height: 400px;
+  margin: 20px auto;
+  border-radius: 8px;
+}
 
-  .nav-links {
-    flex-direction: column;
-    align-items: center;
-  }
+/* ------------------------ */
+/* Boutons (Me localiser) */
+/* ------------------------ */
+button {
+  display: block;
+  width: 95%;
+  max-width: 400px;
+  margin: 10px auto 30px auto;
+  padding: 14px;
+  font-size: 18px;
+  background-color: red;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
 
-  .nav-links li a {
-    width: 100%;
-    padding: 10px;
-  }
+button:hover {
+  background-color: darkred;
+}
 
-  table {
-    font-size: 13px;
-  }
+/* ------------------------ */
+/* Messages d'erreur ou succès */
+/* ------------------------ */
+.error, .success {
+  margin-bottom: 15px;
+  font-weight: bold;
+  text-align: center;
+  font-size: 18px;
+}
+.error { color: red; }
+.success { color: green; }
+
+/* ============================= */
+/* 📱 Très petits téléphones (<400px) */
+@media (max-width: 400px) {
+  body { font-size: 20px; }
+  h2 { font-size: 20px; }
+  select, button { font-size: 20px; padding: 16px; }
+  .positions-table { font-size: 12px; }
+  #map { height: 300px; }
+}
+
+/* 📲 Tablettes (768px–1024px) */
+@media (min-width: 768px) and (max-width: 1024px) {
+  body { font-size: 19px; }
+  h2 { font-size: 22px; }
+  select, button { font-size: 19px; padding: 14px; }
+  #map { height: 450px; }
+  .positions-table { font-size: 14px; }
+}
+
+/* 🖥️ Grands écrans (1024px+) */
+@media (min-width: 1024px) {
+  body { font-size: 18px; }
+  h2 { font-size: 24px; }
+  select, button { font-size: 18px; padding: 12px; }
+  #map { height: 500px; }
+  .positions-table { font-size: 16px; }
 }

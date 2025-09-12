@@ -1,73 +1,75 @@
 /* ============================= */
 /* 🌍 Header fixe en haut */
 /* ============================= */
-.dashboard-header {
+.header {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
-  background: #111; /* noir professionnel */
-  color: white;
+  background-color: #000; /* noir */
+  color: #fff;
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 10px 20px;
   z-index: 1000;
+  box-sizing: border-box;
   box-shadow: 0 4px 10px rgba(0,0,0,0.3);
 }
 
 /* Logo */
-.dashboard-header .logo {
+.header .logo {
   display: flex;
   align-items: center;
   gap: 10px;
 }
 
-.dashboard-header .logo img {
+.header .logo img {
   height: 40px;
+  filter: brightness(0) invert(1);
 }
 
-.dashboard-header .logo span {
+.header .logo span {
   font-size: 20px;
   font-weight: bold;
-  color: white;
+  color: #fff;
 }
 
 /* ============================= */
-/* 📌 Menu navigation */
-/* ============================= */
+/* 📌 Navigation */
 .nav {
   display: flex;
-  gap: 25px;
+  gap: 15px; /* réduit pour que tous les boutons rentrent */
   list-style: none;
   margin: 0;
   padding: 0;
 }
 
 .nav li {
-  display: inline;
+  display: inline-block;
 }
 
 .nav a {
   text-decoration: none;
   font-size: 16px;
-  color: #ddd;
+  color: #fff;
+  padding: 8px 10px;
   transition: color 0.3s;
+  white-space: nowrap; /* empêche le texte de se couper */
 }
 
 .nav a:hover,
 .nav a.active {
-  color: red;
+  color: #ff0000;
 }
 
 /* ============================= */
-/* 📌 Bouton menu (mobile) */
-/* ============================= */
+/* 📌 Bouton menu mobile */
 .menu-toggle {
   display: none;
   font-size: 26px;
-  background: red;
-  color: white;
+  background: #ff0000;
+  color: #fff;
   border: none;
   border-radius: 50%;
   width: 45px;
@@ -78,34 +80,70 @@
 }
 
 /* ============================= */
-/* 📌 Titres de section */
+/* 📱 Responsive Mobile (<768px) */
+@media (max-width: 767px) {
+  .menu-toggle {
+    display: block;
+    position: absolute;
+    top: 12px;
+    right: 12px;
+  }
+
+  .nav {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    background-color: #000;
+    position: absolute;
+    top: 60px;
+    left: 0;
+    width: 100%;
+    padding: 15px 0;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.5);
+    z-index: 999;
+    box-sizing: border-box;
+  }
+
+  .nav.active {
+    display: flex;
+  }
+
+  .nav a {
+    font-size: 18px;
+    padding: 12px 0;
+  }
+}
+
 /* ============================= */
+/* 💻 Responsive PC (>1024px) */
+@media (min-width: 1024px) {
+  .nav {
+    justify-content: flex-end; /* pousse le menu à droite */
+    flex: 1;
+  }
+
+  .nav a {
+    padding: 8px 12px; /* espace suffisant pour tous les boutons */
+  }
+}
+
+/* ============================= */
+/* Sections et titres */
 .section-title {
-  margin-top: 90px; /* espace sous le header fixe */
+  margin-top: 80px; /* espace sous header fixe */
   padding: 15px;
   text-align: center;
   font-size: 20px;
   border-bottom: 2px solid #ddd;
-  background: #f9f9f9;
+  background: #111;
+  color: #fff;
+  box-sizing: border-box;
 }
 
-/* ============================= */
-/* 📌 Sélecteur véhicules */
-/* ============================= */
-.select-wrapper {
-  text-align: center;
-  margin-bottom: 20px;
-}
 
-select {
-  padding: 10px;
-  font-size: 16px;
-  border-radius: 5px;
-  border: 1px solid #ccc;
-}
 
 /* ============================= */
-/* 📌 Tableau des positions */
+/* Tableau positions véhicule */
 /* ============================= */
 .positions-table {
   width: 95%;
@@ -113,110 +151,64 @@ select {
   border-collapse: collapse;
   background: white;
   box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  table-layout: fixed; /* fixe les colonnes pour éviter le décalage */
 }
 
-.positions-table th,
-.positions-table td {
-  border: 1px solid #ddd;
+/* Entêtes */
+.positions-table th {
+  background: #222; /* header noir */
+  color: white;
+  font-weight: bold;
   padding: 10px;
   text-align: center;
+  border: 1px solid #ddd;
+}
+
+/* Cellules */
+.positions-table td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: center;
   font-size: 14px;
+  word-wrap: break-word; /* permet de ne pas dépasser */
 }
 
-.positions-table th {
-  background: #f4f4f4;
-  font-weight: bold;
+/* Largeur fixe par colonne pour garder l’ordre */
+.positions-table th:nth-child(1),
+.positions-table td:nth-child(1) { width: 5%; }   /* # */
+.positions-table th:nth-child(2),
+.positions-table td:nth-child(2) { width: 10%; }  /* Véhicule */
+.positions-table th:nth-child(3),
+.positions-table td:nth-child(3) { width: 10%; }  /* Quartier */
+.positions-table th:nth-child(4),
+.positions-table td:nth-child(4) { width: 10%; }  /* Rue */
+.positions-table th:nth-child(5),
+.positions-table td:nth-child(5) { width: 10%; }  /* Ville */
+.positions-table th:nth-child(6),
+.positions-table td:nth-child(6) { width: 10%; }  /* Pays */
+.positions-table th:nth-child(7),
+.positions-table td:nth-child(7) { width: 10%; }  /* Latitude */
+.positions-table th:nth-child(8),
+.positions-table td:nth-child(8) { width: 10%; }  /* Longitude */
+.positions-table th:nth-child(9),
+.positions-table td:nth-child(9) { width: 10%; }  /* Vitesse */
+.positions-table th:nth-child(10),
+.positions-table td:nth-child(10) { width: 15%; } /* Date_Heure */
+
+/* Couleur lignes alternées */
+.positions-table tbody tr:nth-child(even) {
+  background: #f9f9f9;
 }
 
-/* ============================= */
-/* 📌 Carte Google Maps */
-/* ============================= */
-#map {
-  width: 95%;
-  margin: 0 auto 20px auto;
-  height: 500px;
-  border-radius: 8px;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-}
-
-button {
-  display: block;
-  margin: 10px auto;
-  background: red;
-  color: white;
-  border: none;
-  padding: 12px 18px;
-  border-radius: 5px;
-  font-size: 16px;
-  cursor: pointer;
-}
-
-button:hover {
-  background: darkred;
-}
-
-/* ============================= */
-/* 📱 Responsive Mobile (<768px) */
-/* ============================= */
-@media (max-width: 767px) {
-  .menu-toggle {
-    display: block; /* bouton visible */
-    position: absolute;
-    top: 15px;
-    right: 15px;
-  }
-
-  .nav {
-    display: none; /* menu caché par défaut */
-    flex-direction: column;
-    align-items: center;
-    position: absolute;
-    top: 60px;
-    left: 0;
-    width: 100%;
-    background: #111;
-    padding: 20px;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.2);
-    z-index: 999;
-  }
-
-  .nav.active {
-    display: flex; /* menu visible quand ouvert */
-  }
-
-  .nav a {
-    color: white;
-    font-size: 18px;
-    padding: 10px 0;
-  }
-
-  .positions-table,
-  #map {
-    width: 100%;
+/* Responsive pour petits écrans */
+@media (max-width: 768px) {
+  .positions-table {
     font-size: 12px;
   }
 
-  h2.section-title {
-    font-size: 18px;
-  }
-
-  select {
-    font-size: 16px;
-    padding: 12px;
-  }
-}
-
-/* ============================= */
-/* 💻 Responsive PC (>1024px) */
-/* ============================= */
-@media (min-width: 1024px) {
   .positions-table th,
   .positions-table td {
-    font-size: 16px;
-    padding: 12px;
-  }
-
-  h2.section-title {
-    font-size: 24px;
+    padding: 6px;
   }
 }
+

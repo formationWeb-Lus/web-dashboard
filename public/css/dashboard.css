@@ -142,73 +142,79 @@
 
 
 
-/* ============================= */
-/* Tableau positions véhicule */
-/* ============================= */
-.positions-table {
-  width: 95%;
-  margin: 20px auto;
-  border-collapse: collapse;
-  background: white;
+/* Wrapper pour le tableau : scroll horizontal sur petits écrans */
+.positions-table-wrapper {
+  width: 100%;
+  overflow-x: auto; /* permet le scroll horizontal */
+  -webkit-overflow-scrolling: touch; /* défilement fluide sur iOS */
+  margin-bottom: 20px;
   box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-  table-layout: fixed; /* fixe les colonnes pour éviter le décalage */
+  border-radius: 8px;
 }
 
-/* Entêtes */
-.positions-table th {
-  background: #222; /* header noir */
-  color: white;
-  font-weight: bold;
-  padding: 10px;
-  text-align: center;
-  border: 1px solid #ddd;
+/* Table : largeur minimale pour garder l'ordre des colonnes */
+.positions-table {
+  min-width: 1000px; /* ajuste selon le nombre de colonnes */
+  border-collapse: collapse;
+  width: 100%;
 }
 
-/* Cellules */
+/* Styles des th et td */
+.positions-table th,
 .positions-table td {
   border: 1px solid #ddd;
-  padding: 8px;
+  padding: 10px;
   text-align: center;
   font-size: 14px;
-  word-wrap: break-word; /* permet de ne pas dépasser */
 }
 
-/* Largeur fixe par colonne pour garder l’ordre */
-.positions-table th:nth-child(1),
-.positions-table td:nth-child(1) { width: 5%; }   /* # */
-.positions-table th:nth-child(2),
-.positions-table td:nth-child(2) { width: 10%; }  /* Véhicule */
-.positions-table th:nth-child(3),
-.positions-table td:nth-child(3) { width: 10%; }  /* Quartier */
-.positions-table th:nth-child(4),
-.positions-table td:nth-child(4) { width: 10%; }  /* Rue */
-.positions-table th:nth-child(5),
-.positions-table td:nth-child(5) { width: 10%; }  /* Ville */
-.positions-table th:nth-child(6),
-.positions-table td:nth-child(6) { width: 10%; }  /* Pays */
-.positions-table th:nth-child(7),
-.positions-table td:nth-child(7) { width: 10%; }  /* Latitude */
-.positions-table th:nth-child(8),
-.positions-table td:nth-child(8) { width: 10%; }  /* Longitude */
-.positions-table th:nth-child(9),
-.positions-table td:nth-child(9) { width: 10%; }  /* Vitesse */
-.positions-table th:nth-child(10),
-.positions-table td:nth-child(10) { width: 15%; } /* Date_Heure */
+/* En-têtes */
+.positions-table th {
+  background: #111; /* noir comme le header */
+  color: #fff; /* texte blanc */
+  font-weight: bold;
+  position: sticky; /* garde l'entête visible lors du scroll */
+  top: 0;
+  z-index: 1;
+}
 
-/* Couleur lignes alternées */
+/* Alternance des lignes */
 .positions-table tbody tr:nth-child(even) {
-  background: #f9f9f9;
+  background-color: #f4f4f4;
 }
 
-/* Responsive pour petits écrans */
-@media (max-width: 768px) {
-  .positions-table {
-    font-size: 12px;
-  }
+.positions-table tbody tr:nth-child(odd) {
+  background-color: #fff;
+}
 
+/* Scrollbar esthétique sur Webkit (Chrome, Safari) */
+.positions-table-wrapper::-webkit-scrollbar {
+  height: 8px;
+}
+
+.positions-table-wrapper::-webkit-scrollbar-track {
+  background: #eee;
+  border-radius: 4px;
+}
+
+.positions-table-wrapper::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+
+.positions-table-wrapper::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+/* Responsive : réduit les font et padding sur petits écrans */
+@media (max-width: 767px) {
   .positions-table th,
   .positions-table td {
-    padding: 6px;
+    font-size: 12px;
+    padding: 8px;
   }
 }
+
+
+
 

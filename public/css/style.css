@@ -14,6 +14,7 @@ body {
   padding: 25px;
   border-radius: 8px;
   box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  text-align: center;
 }
 
 /* Champs */
@@ -24,12 +25,16 @@ input, select {
   border-radius: 5px;
   border: 1px solid #ccc;
   font-size: 18px;
+  box-sizing: border-box;
 }
 
 /* Boutons */
-button {
+button, .link {
+  display: block;
   background-color: red;
   color: white;
+  text-decoration: none;
+  text-align: center;
   border: none;
   padding: 16px;
   width: 100%;
@@ -37,9 +42,12 @@ button {
   cursor: pointer;
   font-size: 18px;
   transition: background 0.3s ease;
+  margin-bottom: 15px;
+  box-sizing: border-box;
 }
 
-button:hover {
+button:hover,
+.link:hover {
   background-color: darkred;
 }
 
@@ -61,7 +69,7 @@ button:hover {
     font-size: 20px; /* texte plus gros */
   }
 
-  input, select, button {
+  input, select, button, .link {
     font-size: 20px;
     padding: 18px; /* boutons + larges et plus faciles à cliquer */
   }
@@ -84,7 +92,7 @@ button:hover {
     max-width: 700px;
     padding: 30px;
   }
-  input, select, button {
+  input, select, button, .link {
     font-size: 19px;
   }
 }
@@ -100,54 +108,9 @@ button:hover {
     max-width: 900px;
     padding: 40px;
   }
-  input, select, button {
+  input, select, button, .link {
     font-size: 18px;
   }
 }
 
 
-/* Carte par défaut (PC et tablettes) */
-.map-container {
-  width: 60%;       /* occupe une partie de l'écran */
-  height: 500px;    /* hauteur fixe */
-  float: right;     /* à droite du texte/champs */
-  border-radius: 8px;
-}
-
-.form-container {
-  width: 35%;
-  float: left;
-  padding: 20px;
-}
-
-/* ============================= */
-/* 📱 Version Téléphone */
-/* ============================= */
-@media (max-width: 768px) {
-  .map-container {
-    width: 100%;       /* prend toute la largeur */
-    height: 400px;     /* hauteur adaptée au mobile */
-    float: none;       /* pas de float */
-    margin-bottom: 20px;
-  }
-
-  .form-container {
-    width: 100%;
-    float: none;
-    padding: 15px;
-  }
-
-  /* Agrandir textes, champs, boutons */
-  body {
-    font-size: 20px;
-  }
-
-  input, select, button {
-    font-size: 20px;
-    padding: 18px;
-  }
-
-  button {
-    font-size: 22px;
-  }
-}

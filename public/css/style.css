@@ -1,36 +1,41 @@
 body {
   font-family: Arial, sans-serif;
   background: #f9f9f9;
-  margin: 30;
-  padding: 70px;
+  margin: 0;
+  padding: 0;
+  font-size: 18px; /* taille de base assez grande */
 }
 
-/* Conteneur principal */
+/* Bloc principal */
 .container {
   max-width: 500px;
-  margin: 80px auto;
-  background: rgb(245, 242, 242);
-  padding: 30px;
-  border-radius: 10px;
+  margin: 40px auto;
+  background: white;
+  padding: 25px;
+  border-radius: 8px;
   box-shadow: 0 4px 10px rgba(0,0,0,0.1);
 }
 
+/* Champs */
 input, select {
   width: 100%;
-  padding: 12px;
-  margin-bottom: 15px;
+  padding: 14px;
+  margin-bottom: 18px;
   border-radius: 5px;
-  border: 1px solid #e04b4b;
+  border: 1px solid #ccc;
+  font-size: 18px;
 }
 
+/* Boutons */
 button {
   background-color: red;
   color: white;
   border: none;
-  padding: 12px;
+  padding: 16px;
   width: 100%;
   border-radius: 5px;
   cursor: pointer;
+  font-size: 18px;
   transition: background 0.3s ease;
 }
 
@@ -38,67 +43,64 @@ button:hover {
   background-color: darkred;
 }
 
-.error {
-  color: red;
+/* Messages */
+.error, .success {
   margin-bottom: 15px;
   font-weight: bold;
   text-align: center;
+  font-size: 18px;
 }
-.success {
-  color: green;
-  margin-bottom: 15px;
-  font-weight: bold;
-  text-align: center;
-}
+.error { color: red; }
+.success { color: green; }
 
-/* ------------------ */
-/* 📱 Mobile (petits écrans < 600px) */
-@media (max-width: 600px) {
+/* ============================= */
+/* 📱 Très petits téléphones (<400px) */
+/* ============================= */
+@media (max-width: 400px) {
+  body {
+    font-size: 20px; /* texte plus gros */
+  }
+
+  input, select, button {
+    font-size: 20px;
+    padding: 18px; /* boutons + larges et plus faciles à cliquer */
+  }
+
   .container {
-    margin: 30px 15px;
-    padding: 40px;
+    margin: 10px;
+    padding: 15px;
     max-width: 100%;
   }
-
-  button {
-    padding: 14px;
-    font-size: 16px;
-  }
-
-  input, select {
-    font-size: 16px;
-  }
 }
 
-/* 📱📲 Tablettes (600px – 1024px) */
-@media (min-width: 600px) and (max-width: 1024px) {
+/* ============================= */
+/* 📲 Tablettes (768px–1024px) */
+/* ============================= */
+@media (min-width: 768px) and (max-width: 1024px) {
+  body {
+    font-size: 19px;
+  }
   .container {
     max-width: 700px;
-    margin: 60px auto;
-    padding: 25px;
+    padding: 30px;
   }
-
-  button {
-    font-size: 17px;
-  }
-
-  input, select {
-    font-size: 15px;
+  input, select, button {
+    font-size: 19px;
   }
 }
 
-/* 🖥️ Grands écrans (1024px et plus) */
+/* ============================= */
+/* 🖥️ Grands écrans (1024px+) */
+/* ============================= */
 @media (min-width: 1024px) {
-  .container {
-    max-width: 900px;
-    padding: 50px;
-  }
-
-  button {
+  body {
     font-size: 18px;
   }
-
-  input, select {
-    font-size: 16px;
+  .container {
+    max-width: 900px;
+    padding: 40px;
+  }
+  input, select, button {
+    font-size: 18px;
   }
 }

@@ -104,3 +104,50 @@ button:hover {
     font-size: 18px;
   }
 }
+
+
+/* Carte par défaut (PC et tablettes) */
+.map-container {
+  width: 60%;       /* occupe une partie de l'écran */
+  height: 500px;    /* hauteur fixe */
+  float: right;     /* à droite du texte/champs */
+  border-radius: 8px;
+}
+
+.form-container {
+  width: 35%;
+  float: left;
+  padding: 20px;
+}
+
+/* ============================= */
+/* 📱 Version Téléphone */
+/* ============================= */
+@media (max-width: 768px) {
+  .map-container {
+    width: 100%;       /* prend toute la largeur */
+    height: 400px;     /* hauteur adaptée au mobile */
+    float: none;       /* pas de float */
+    margin-bottom: 20px;
+  }
+
+  .form-container {
+    width: 100%;
+    float: none;
+    padding: 15px;
+  }
+
+  /* Agrandir textes, champs, boutons */
+  body {
+    font-size: 20px;
+  }
+
+  input, select, button {
+    font-size: 20px;
+    padding: 18px;
+  }
+
+  button {
+    font-size: 22px;
+  }
+}

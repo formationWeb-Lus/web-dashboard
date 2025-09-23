@@ -1,115 +1,133 @@
-body {
-  font-family: Arial, sans-serif;
-  background: #f9f9f9;
+/* ========================
+   Reset & base
+========================= */
+* {
+  box-sizing: border-box;
   margin: 0;
   padding: 0;
-  font-size: 18px; /* taille de base assez grande */
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-/* Bloc principal */
+body {
+  background: linear-gradient(135deg, #b8020b, rgb(40, 4, 141), #ffbb00);
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #333;
+}
+
 .container {
-  max-width: 500px;
-  margin: 40px auto;
-  background: white;
-  padding: 25px;
+  background-color: #fff;
+  padding: 40px 50px;
+  border-radius: 12px;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+  width: 100%;
+  max-width: 450px;
+  text-align: center;
+}
+
+h1 {
+  margin-bottom: 15px;
+  color: #FF7F50;
+  font-size: 2rem;
+}
+
+p {
+  margin-bottom: 20px;
+  font-size: 0.95rem;
+  color: #666;
+}
+
+/* ========================
+   Form & Inputs
+========================= */
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+input[type="text"],
+input[type="tel"],
+input[type="password"],
+input[type="number"],
+select {
+  padding: 12px 15px;
   border-radius: 8px;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-  text-align: center;
+  border: 1px solid #ddd;
+  font-size: 0.95rem;
+  transition: all 0.3s ease;
 }
 
-/* Champs */
-input, select {
-  width: 100%;
-  padding: 14px;
-  margin-bottom: 18px;
-  border-radius: 5px;
-  border: 1px solid #ccc;
-  font-size: 18px;
-  box-sizing: border-box;
+input:focus,
+select:focus {
+  outline: none;
+  border-color: #6d4130;
+  box-shadow: 0 0 5px rgba(255, 127, 80, 0.4);
 }
 
-/* Boutons */
-button, .link {
-  display: block;
-  background-color: red;
-  color: white;
-  text-decoration: none;
-  text-align: center;
+/* ========================
+   Labels
+========================= */
+label {
+  text-align: left;
+  font-size: 0.9rem;
+  color: #444;
+}
+
+/* ========================
+   Button
+========================= */
+button {
+  padding: 12px 20px;
   border: none;
-  padding: 16px;
-  width: 100%;
-  border-radius: 5px;
-  cursor: pointer;
-  font-size: 18px;
-  transition: background 0.3s ease;
-  margin-bottom: 15px;
-  box-sizing: border-box;
-}
-
-button:hover,
-.link:hover {
-  background-color: darkred;
-}
-
-/* Messages */
-.error, .success {
-  margin-bottom: 15px;
+  border-radius: 8px;
+  background: #FF7F50;
+  color: #fff;
+  font-size: 1rem;
   font-weight: bold;
-  text-align: center;
-  font-size: 18px;
-}
-.error { color: red; }
-.success { color: green; }
-
-/* ============================= */
-/* 📱 Très petits téléphones (<400px) */
-/* ============================= */
-@media (max-width: 400px) {
-  body {
-    font-size: 20px; /* texte plus gros */
-  }
-
-  input, select, button, .link {
-    font-size: 20px;
-    padding: 18px; /* boutons + larges et plus faciles à cliquer */
-  }
-
-  .container {
-    margin: 10px;
-    padding: 15px;
-    max-width: 100%;
-  }
+  cursor: pointer;
+  transition: all 0.3s ease;
 }
 
-/* ============================= */
-/* 📲 Tablettes (768px–1024px) */
-/* ============================= */
-@media (min-width: 768px) and (max-width: 1024px) {
-  body {
-    font-size: 19px;
-  }
-  .container {
-    max-width: 700px;
-    padding: 30px;
-  }
-  input, select, button, .link {
-    font-size: 19px;
-  }
+button:hover {
+  background: #FFA07A;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
 }
 
-/* ============================= */
-/* 🖥️ Grands écrans (1024px+) */
-/* ============================= */
-@media (min-width: 1024px) {
-  body {
-    font-size: 18px;
-  }
+/* ========================
+   Error message
+========================= */
+.error {
+  background-color: #FFCCCC;
+  color: #B00000;
+  padding: 10px 15px;
+  border-radius: 6px;
+  margin-bottom: 10px;
+  font-size: 0.9rem;
+}
+
+/* ========================
+   Link
+========================= */
+.link {
+  color: #FF7F50;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.link:hover {
+  text-decoration: underline;
+}
+
+/* ========================
+   Responsive
+========================= */
+@media (max-width: 600px) {
   .container {
-    max-width: 900px;
-    padding: 40px;
-  }
-  input, select, button, .link {
-    font-size: 18px;
+    padding: 30px 20px;
   }
 }
 

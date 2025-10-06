@@ -1,40 +1,40 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Créer un compte</title>
+  <title>Create an Account</title>
   <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
   <div class="container">
-    <h1>Créer un compte</h1>
-    <p>Remplissez les informations ci-dessous pour vous inscrire.</p>
+    <h1>Create an Account</h1>
+    <p>Fill in the information below to sign up.</p>
 
     <% if (error) { %>
       <div class="error"><%= error %></div>
     <% } %>
 
     <form method="POST" action="/register">
-      <input type="text" name="firstName" placeholder="Prénom" required />
-      <input type="text" name="lastName" placeholder="Nom" required />
-      <input type="tel" name="phone" placeholder="Téléphone" required minlength="8" />
-      <input type="password" name="password" placeholder="Mot de passe" required />
+      <input type="text" name="firstName" placeholder="First Name" required />
+      <input type="text" name="lastName" placeholder="Last Name" required />
+      <input type="tel" name="phone" placeholder="Phone Number" required minlength="8" />
+      <input type="password" name="password" placeholder="Password" required />
 
-      <label>Choisissez un plan :</label>
+      <label>Choose a plan:</label>
       <select name="selectedPlan" required>
-        <option value="">-- Sélectionnez --</option>
-        <option value="mensuel">Mensuel - 5$/véhicule</option>
-        <option value="annuel">Annuel - 100$/véhicule</option>
+        <option value="">-- Select --</option>
+        <option value="monthly">Monthly - $5/vehicle</option>
+        <option value="yearly">Yearly - $100/vehicle</option>
       </select>
 
-      <label>Nombre de véhicules :</label>
+      <label>Number of vehicles:</label>
       <input type="number" name="vehicleCount" min="1" max="300" value="1" required />
 
-      <button type="submit">S’inscrire</button>
+      <button type="submit">Sign Up</button>
     </form>
 
-    <p>Vous avez déjà un compte ? <a href="/login" class="link">Connectez-vous ici</a></p>
+    <p>Already have an account? <a href="/login" class="link">Log in here</a></p>
   </div>
 </body>
 </html>
